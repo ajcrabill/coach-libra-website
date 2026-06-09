@@ -27,10 +27,18 @@ Connect this repo in the Cloudflare dashboard → Pages → Create → Connect t
 Then add the custom domain `coachlibra.com` (and `www`) under the project's
 Custom domains tab.
 
-## To wire later
-- The waitlist form (`#waitlist`) is front-end only. Point it at a Cloudflare
-  Pages Function (`/functions/api/waitlist.js`) or a form service, then POST the
-  email instead of just showing the confirmation.
+## Waitlist
+The form POSTs to a Cloudflare Pages Function at `functions/api/waitlist.js`
+(`/api/waitlist`), which stores each signup in KV. **One-time binding setup:**
+1. Cloudflare → Workers & Pages → **KV** → Create namespace `coachlibra-waitlist`.
+2. Your Pages project → **Settings → Functions → KV namespace bindings** → add
+   binding: variable name **`WAITLIST`** → namespace `coachlibra-waitlist`.
+3. Redeploy (any push, or "Retry deployment").
+
+View signups: KV namespace → browse keys (`signup:<email>`), or
+`wrangler kv:key list --binding WAITLIST`. Until the binding exists the endpoint
+still returns success (so no signup bounces), but nothing is stored — set it up
+before launch.
 
 ## Design
 Literary-atelier aesthetic: ink on cream paper, oxblood + gold accents, Fraunces

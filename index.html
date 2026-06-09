@@ -331,7 +331,7 @@
           <input type="email" name="email" id="email" placeholder="you@example.com" autocomplete="email" required aria-label="Email address" />
           <button class="btn" type="submit">Request an invitation</button>
         </form>
-        <p class="form-note">No spam, ever. Just a note when there's room at the table.</p>
+        <p class="form-note" id="formnote">No spam, ever. Just a note when there's room at the table.</p>
         <p class="form-done" id="formdone">❦ &nbsp;You're on the list. We'll be in touch.</p>
       </div>
     </div>
@@ -374,16 +374,31 @@
   }, {threshold:.16, rootMargin:'0px 0px -8% 0px'});
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-  // waitlist (front-end only for now — wire to a Cloudflare Pages Function or form service)
+  // waitlist → POST to the Cloudflare Pages Function at /api/waitlist
   const form = document.getElementById('waitlist');
   const done = document.getElementById('formdone');
-  form.addEventListener('submit', (e) => {
+  const note = document.getElementById('formnote');
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('email');
+    const btn = form.querySelector('button');
     if(!email.value || !email.validity.valid){ email.focus(); return; }
-    // TODO: POST to /api/waitlist (Cloudflare Pages Function) or a form provider.
-    form.style.display = 'none';
-    done.classList.add('show');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try {
+      const res = await fetch('/api/waitlist', {
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body: JSON.stringify({ email: email.value.trim() })
+      });
+      const data = await res.json().catch(() => ({ ok:false }));
+      if(!res.ok || !data.ok) throw new Error(data.error || 'failed');
+      form.style.display = 'none';
+      done.classList.add('show');
+    } catch(err) {
+      btn.disabled = false; btn.textContent = 'Request an invitation';
+      note.innerHTML = "Hmm — that didn't go through. Try again, or email " +
+        "<a href='mailto:hello@coachlibra.com' style='color:var(--gold-soft)'>hello@coachlibra.com</a>.";
+    }
   });
 </script>
 </body>
