@@ -385,13 +385,12 @@
     if(!email.value || !email.validity.valid){ email.focus(); return; }
     btn.disabled = true; btn.textContent = 'Sending…';
     try {
-      const res = await fetch('/api/waitlist', {
+      const res = await fetch('https://formspree.io/f/xayzdydv', {
         method:'POST',
-        headers:{'content-type':'application/json'},
-        body: JSON.stringify({ email: email.value.trim() })
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body: JSON.stringify({ email: email.value.trim(), _subject: 'New Coach Libra waitlist signup' })
       });
-      const data = await res.json().catch(() => ({ ok:false }));
-      if(!res.ok || !data.ok) throw new Error(data.error || 'failed');
+      if(!res.ok) throw new Error('failed');
       form.style.display = 'none';
       done.classList.add('show');
     } catch(err) {

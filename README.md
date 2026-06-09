@@ -28,17 +28,10 @@ Then add the custom domain `coachlibra.com` (and `www`) under the project's
 Custom domains tab.
 
 ## Waitlist
-The form POSTs to a Cloudflare Pages Function at `functions/api/waitlist.js`
-(`/api/waitlist`), which stores each signup in KV. **One-time binding setup:**
-1. Cloudflare → Workers & Pages → **KV** → Create namespace `coachlibra-waitlist`.
-2. Your Pages project → **Settings → Functions → KV namespace bindings** → add
-   binding: variable name **`WAITLIST`** → namespace `coachlibra-waitlist`.
-3. Redeploy (any push, or "Retry deployment").
-
-View signups: KV namespace → browse keys (`signup:<email>`), or
-`wrangler kv:key list --binding WAITLIST`. Until the binding exists the endpoint
-still returns success (so no signup bounces), but nothing is stored — set it up
-before launch.
+Hosted on **GitHub Pages** (static), so the form POSTs directly to **Formspree**
+(`https://formspree.io/f/xayzdydv`) via AJAX. Signups land in the Formspree
+inbox / your notification email. If the request fails, the form shows a mailto
+fallback to `hello@coachlibra.com`. No backend or build step required.
 
 ## Design
 Literary-atelier aesthetic: ink on cream paper, oxblood + gold accents, Fraunces
