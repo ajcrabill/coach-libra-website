@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Coach Libra — The book you've always had in you, finally written</title>
+<meta name="description" content="Coach Libra is a rockstar author coach who captures your real voice and turns your expertise into a finished, publish-ready manuscript — faster and more easily than you thought possible." />
+<meta property="og:title" content="Coach Libra" />
+<meta property="og:description" content="The book you've always had in you. Finally written." />
+<meta property="og:type" content="website" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..600&family=Hanken+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f4ede0;
+    --paper-2:#efe6d6;
+    --ink:#211b14;
+    --ink-soft:#5c5142;
+    --oxblood:#7c2d27;
+    --oxblood-deep:#5e211d;
+    --gold:#bd9347;
+    --gold-soft:#d8b870;
+    --line:#d8ccb6;
+    --max:1180px;
+    --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Hanken Grotesk",system-ui,sans-serif;
+    font-weight:400;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+    position:relative;
+  }
+  /* paper warmth + faint vignette */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:
+      radial-gradient(120% 80% at 75% -10%, #fbf6ec 0%, transparent 55%),
+      radial-gradient(120% 90% at 0% 110%, #ece0cc 0%, transparent 50%),
+      var(--paper);
+  }
+  /* grain overlay */
+  body::after{
+    content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection{background:var(--oxblood);color:var(--paper)}
+
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 32px}
+
+  /* ---------- type ---------- */
+  .serif{font-family:"Fraunces",Georgia,serif}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:430;line-height:1.04;letter-spacing:-.01em;font-optical-sizing:auto}
+  .eyebrow{
+    font-family:"Hanken Grotesk",sans-serif;font-weight:600;font-size:.72rem;
+    letter-spacing:.32em;text-transform:uppercase;color:var(--oxblood);
+  }
+  .lead{font-size:1.22rem;color:var(--ink-soft);max-width:46ch}
+
+  /* ---------- nav ---------- */
+  header.nav{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:22px 32px;
+    transition:background .4s var(--ease),box-shadow .4s var(--ease),padding .4s var(--ease);
+  }
+  header.nav.scrolled{
+    background:rgba(244,237,224,.82);backdrop-filter:blur(10px);
+    box-shadow:0 1px 0 var(--line);padding:14px 32px;
+  }
+  .brand{display:flex;align-items:center;gap:11px;font-family:"Fraunces",serif;font-weight:500;font-size:1.32rem;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+  .brand .mark{width:26px;height:26px;flex:0 0 auto}
+  .nav-links{display:flex;align-items:center;gap:34px}
+  .nav-links a{color:var(--ink);text-decoration:none;font-size:.93rem;font-weight:500;opacity:.78;transition:opacity .25s}
+  .nav-links a:hover{opacity:1}
+  .nav-links a.cta{opacity:1}
+  .btn{
+    display:inline-flex;align-items:center;gap:.5em;
+    background:var(--oxblood);color:var(--paper);
+    font-family:"Hanken Grotesk",sans-serif;font-weight:600;font-size:.93rem;
+    padding:.72em 1.35em;border-radius:999px;text-decoration:none;border:none;cursor:pointer;
+    transition:transform .25s var(--ease),background .25s,box-shadow .25s;
+    box-shadow:0 1px 0 rgba(0,0,0,.04);
+  }
+  .btn:hover{background:var(--oxblood-deep);transform:translateY(-2px);box-shadow:0 10px 26px -12px rgba(94,33,29,.6)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--ink);background:transparent;box-shadow:none}
+  .nav-toggle{display:none;background:none;border:none;cursor:pointer;color:var(--ink)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;padding:190px 0 96px}
+  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center}
+  .hero h1{font-size:clamp(2.9rem,7vw,5.6rem);margin:.32em 0 .5em}
+  .hero h1 em{font-style:italic;color:var(--oxblood);font-weight:400}
+  .hero .lead{font-size:1.3rem;max-width:42ch}
+  .hero-cta{display:flex;gap:16px;align-items:center;margin-top:38px;flex-wrap:wrap}
+  .reassure{font-size:.86rem;color:var(--ink-soft);display:flex;align-items:center;gap:.55em}
+  .reassure .dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+
+  /* hero plate / quill emblem */
+  .plate{position:relative;aspect-ratio:1/1.12;border-radius:8px;
+    background:linear-gradient(160deg,#fbf5ea,#ece0cc);
+    border:1px solid var(--line);
+    box-shadow:0 40px 80px -50px rgba(50,33,20,.6), inset 0 0 0 1px rgba(255,255,255,.4);
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .plate::before{content:"";position:absolute;inset:18px;border:1px solid var(--gold);opacity:.45;border-radius:4px}
+  .plate .rules{position:absolute;inset:54px 40px;display:flex;flex-direction:column;justify-content:space-between;opacity:.35}
+  .plate .rules span{height:1px;background:var(--line)}
+  .plate .quill{width:46%;color:var(--oxblood);position:relative;z-index:2;filter:drop-shadow(0 8px 18px rgba(94,33,29,.25))}
+  .plate .initial{position:absolute;font-family:"Fraunces",serif;font-size:13rem;line-height:1;color:var(--ink);opacity:.06;z-index:1;right:6%;bottom:-2%;font-weight:500}
+
+  /* ---------- section frame ---------- */
+  section{position:relative}
+  .band{padding:104px 0}
+  .rule-orn{display:flex;align-items:center;gap:18px;color:var(--gold);margin-bottom:30px}
+  .rule-orn::before,.rule-orn::after{content:"";height:1px;background:var(--line);flex:1}
+  .rule-orn .glyph{font-family:"Fraunces",serif;font-size:1.1rem;color:var(--oxblood)}
+
+  /* empathy */
+  .quiet{text-align:center;max-width:760px;margin:0 auto}
+  .quiet h2{font-size:clamp(2rem,4.4vw,3.3rem);margin-bottom:.5em}
+  .quiet h2 em{font-style:italic;color:var(--oxblood);font-weight:400}
+  .quiet p{font-size:1.18rem;color:var(--ink-soft);max-width:60ch;margin:0 auto}
+
+  /* steps */
+  .steps-head{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:56px;flex-wrap:wrap}
+  .steps-head h2{font-size:clamp(2rem,4.4vw,3.2rem);max-width:14ch}
+  .steps{display:grid;gap:0;border-top:1px solid var(--line)}
+  .step{display:grid;grid-template-columns:90px 1fr 1.1fr;gap:32px;padding:34px 0;border-bottom:1px solid var(--line);align-items:baseline}
+  .step .no{font-family:"Fraunces",serif;font-size:2.2rem;color:var(--oxblood);font-weight:400}
+  .step h3{font-size:1.5rem;font-weight:480}
+  .step p{color:var(--ink-soft);font-size:1.02rem}
+  .step:hover{background:linear-gradient(90deg,rgba(189,147,71,.06),transparent)}
+
+  /* differentiators */
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:54px}
+  .card{background:linear-gradient(165deg,#faf4e9,#efe5d3);border:1px solid var(--line);border-radius:10px;padding:34px 30px;position:relative;overflow:hidden}
+  .card .num{font-family:"Fraunces",serif;color:var(--gold);font-size:1rem;letter-spacing:.2em}
+  .card h3{font-size:1.4rem;margin:16px 0 10px;font-weight:470}
+  .card p{color:var(--ink-soft);font-size:1rem}
+  .card::after{content:"";position:absolute;right:-30px;top:-30px;width:90px;height:90px;border:1px solid var(--gold);border-radius:50%;opacity:.25}
+
+  /* who */
+  .who{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:center}
+  .who h2{font-size:clamp(2rem,4.2vw,3rem);margin-bottom:.4em}
+  .who ul{list-style:none;display:grid;gap:14px;margin-top:10px}
+  .who li{display:flex;gap:14px;align-items:flex-start;font-size:1.06rem;color:var(--ink-soft)}
+  .who li .tick{color:var(--oxblood);font-family:"Fraunces",serif;flex:0 0 auto;margin-top:2px}
+  .pull{font-family:"Fraunces",serif;font-style:italic;font-size:clamp(1.8rem,3.6vw,2.7rem);line-height:1.2;color:var(--ink)}
+  .pull span{color:var(--oxblood)}
+
+  /* cta / waitlist */
+  .cta-band{background:
+      radial-gradient(120% 140% at 80% 0%, #34211a 0%, transparent 60%),
+      linear-gradient(160deg,#2a201a,#1c1511);
+    color:var(--paper);border-radius:18px;padding:72px 56px;position:relative;overflow:hidden}
+  .cta-band::before{content:"";position:absolute;inset:20px;border:1px solid rgba(216,184,112,.3);border-radius:10px;pointer-events:none}
+  .cta-band .eyebrow{color:var(--gold-soft)}
+  .cta-band h2{font-size:clamp(2.1rem,4.6vw,3.4rem);color:#f7efe0;max-width:18ch;margin:.3em 0 .5em}
+  .cta-band h2 em{font-style:italic;color:var(--gold-soft);font-weight:400}
+  .cta-band p{color:#cdbfa9;max-width:52ch;font-size:1.08rem}
+  form.waitlist{display:flex;gap:12px;margin-top:34px;max-width:520px;flex-wrap:wrap}
+  form.waitlist input{
+    flex:1;min-width:240px;background:rgba(255,255,255,.06);border:1px solid rgba(216,184,112,.35);
+    color:var(--paper);padding:.95em 1.2em;border-radius:999px;font-family:inherit;font-size:1rem;outline:none;transition:border .25s,background .25s}
+  form.waitlist input::placeholder{color:#a99c86}
+  form.waitlist input:focus{border-color:var(--gold-soft);background:rgba(255,255,255,.1)}
+  form.waitlist .btn{background:var(--gold);color:#241a12}
+  form.waitlist .btn:hover{background:var(--gold-soft)}
+  .form-note{margin-top:16px;font-size:.82rem;color:#a99c86}
+  .form-done{margin-top:34px;font-family:"Fraunces",serif;font-size:1.3rem;color:var(--gold-soft);display:none}
+  .form-done.show{display:block;animation:rise .6s var(--ease) both}
+
+  /* footer */
+  footer{padding:64px 0 50px;border-top:1px solid var(--line);margin-top:8px}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:30px;flex-wrap:wrap}
+  .foot .brand{font-size:1.15rem}
+  .foot p{color:var(--ink-soft);font-size:.88rem}
+  .foot a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--line)}
+  .foot a:hover{color:var(--oxblood)}
+
+  /* ---------- motion ---------- */
+  @keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+  .reveal.in{opacity:1;transform:none}
+  .load{opacity:0;animation:rise .9s var(--ease) forwards}
+  .d1{animation-delay:.05s}.d2{animation-delay:.18s}.d3{animation-delay:.31s}.d4{animation-delay:.44s}.d5{animation-delay:.57s}
+  @media (prefers-reduced-motion:reduce){
+    .reveal,.load{opacity:1!important;transform:none!important;animation:none!important}
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:900px){
+    .hero-grid,.who{grid-template-columns:1fr;gap:44px}
+    .plate{max-width:380px;margin:0 auto}
+    .grid3{grid-template-columns:1fr}
+    .step{grid-template-columns:54px 1fr;gap:18px}
+    .step p{grid-column:1/-1}
+    .nav-links{display:none}
+    .nav-toggle{display:block}
+    .nav-links.open{display:flex;position:absolute;top:100%;right:0;left:0;flex-direction:column;background:var(--paper);padding:24px 32px;gap:20px;border-bottom:1px solid var(--line);box-shadow:0 20px 40px -30px rgba(0,0,0,.4)}
+    .cta-band{padding:52px 28px}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#top">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 2c3 4 3 8 0 12-3-4-3-8 0-12z" fill="#7c2d27"/>
+      <path d="M12 14c2.4-3 7-3.6 9.6-2.2C19 16 15.6 18.4 12 18c-3.6.4-7-2-9.6-6.2C5 10.4 9.6 11 12 14z" fill="#bd9347"/>
+      <line x1="12" y1="14" x2="12" y2="22" stroke="#211b14" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    Coach Libra
+  </a>
+  <nav class="nav-links" id="navlinks">
+    <a href="#how">How it works</a>
+    <a href="#craft">The craft</a>
+    <a href="#who">Who it's for</a>
+    <a class="cta btn" href="#begin">Begin your book</a>
+  </nav>
+  <button class="nav-toggle" id="navtoggle" aria-label="Menu">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+  </button>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow load d1">A rockstar author coach</p>
+        <h1 class="load d2">The book you've<br/>always had in you.<br/><em>Finally written.</em></h1>
+        <p class="lead load d3">Coach Libra captures your real voice and turns your hard-won expertise into a finished, publish-ready manuscript — faster, and far more easily, than you ever thought possible.</p>
+        <div class="hero-cta load d4">
+          <a class="btn" href="#begin">Begin your book →</a>
+          <span class="reassure"><span class="dot"></span> By invitation — a few authors at a time.</span>
+        </div>
+      </div>
+      <div class="load d5">
+        <div class="plate" aria-hidden="true">
+          <div class="rules"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <span class="initial">L</span>
+          <svg class="quill" viewBox="0 0 64 64" fill="none">
+            <path d="M54 8C36 12 22 24 16 42c-2 6-3 10-3 14l6-2c1-9 6-19 14-27 6-6 14-11 21-15-7 7-13 12-19 19-4 5-7 10-8 16 12-2 24-12 28-28 1-4 1-8-1-11z" fill="currentColor"/>
+            <path d="M13 56c2-6 6-11 11-14" stroke="#211b14" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EMPATHY -->
+  <section class="band">
+    <div class="wrap">
+      <div class="rule-orn reveal"><span class="glyph">❦</span></div>
+      <div class="quiet reveal">
+        <h2>You've meant to write it for <em>years.</em></h2>
+        <p>You know things worth knowing. People keep telling you there's a book in there. But the blank page never moved — not because you lack the ideas, but because you've never had the time, the structure, or a way to get your voice onto the page without it sounding like someone else. That's the part we solve.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="band" id="how">
+    <div class="wrap">
+      <div class="steps-head reveal">
+        <h2>How your book<br/>gets written.</h2>
+        <p class="lead">Five unhurried steps. Most of the work happens off your plate — you mostly just talk, and confirm.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal"><span class="no">01</span><h3>We learn your voice</h3><p>Share a handful of things you've already written. Coach Libra builds a true print of how <em>you</em> sound — your rhythm, your turns of phrase, what you'd never say.</p></div>
+        <div class="step reveal"><span class="no">02</span><h3>We shape the book</h3><p>A few good questions — answer them however you like, even by voice memo — and your idea becomes a clear, confident outline benchmarked against the best books in your field.</p></div>
+        <div class="step reveal"><span class="no">03</span><h3>We write the draft</h3><p>Coach Libra drafts the manuscript in your voice, chapter by chapter — the part that has stopped you for years, handled.</p></div>
+        <div class="step reveal"><span class="no">04</span><h3>You refine, lightly</h3><p>You read, react, and steer. Small nudges, not heavy lifting. The book bends toward exactly what you meant.</p></div>
+        <div class="step reveal"><span class="no">05</span><h3>A polished manuscript</h3><p>Rigorously edited and held to the standard of the highest-rated books in your category — then delivered, ready for the world.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIFFERENTIATORS -->
+  <section class="band" id="craft">
+    <div class="wrap">
+      <div class="rule-orn reveal"><span class="glyph">The craft</span></div>
+      <h2 class="reveal" style="font-size:clamp(2rem,4.4vw,3.2rem);max-width:18ch">Why it reads like <em style="font-style:italic;color:var(--oxblood);font-weight:400">you</em> — not like a machine.</h2>
+      <div class="grid3">
+        <div class="card reveal"><div class="num">Ⅰ</div><h3>Your authentic voice</h3><p>We don't impose a house style. We extract yours — from your real writing — and hold every sentence to it. The result sounds like your best day at the keyboard.</p></div>
+        <div class="card reveal"><div class="num">Ⅱ</div><h3>Held to the best</h3><p>Your manuscript is measured against the highest-rated books in your category at every stage — structure, pacing, prose — so it belongs on that shelf.</p></div>
+        <div class="card reveal"><div class="num">Ⅲ</div><h3>Effortless by design</h3><p>You're busy. So the process asks little of you — a few conversations, a few confirmations. The craft happens quietly in the background.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHO -->
+  <section class="band" id="who">
+    <div class="wrap who">
+      <div class="reveal">
+        <p class="eyebrow">For people with something to say</p>
+        <h2>Written for the expert who never had the time.</h2>
+        <p class="pull">"I always knew I had a book in me.<br/><span>I just never had the hours.</span>"</p>
+      </div>
+      <div class="reveal">
+        <ul>
+          <li><span class="tick">—</span> Founders and executives ready to put their thinking on the record.</li>
+          <li><span class="tick">—</span> Experts and operators who've earned hard-won lessons worth passing on.</li>
+          <li><span class="tick">—</span> Speakers and coaches who want the book that opens rooms.</li>
+          <li><span class="tick">—</span> Anyone who's carried a manuscript in their head for years and is ready to hold it in their hands.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA / WAITLIST -->
+  <section class="band" id="begin">
+    <div class="wrap">
+      <div class="cta-band reveal">
+        <p class="eyebrow">Begin your book</p>
+        <h2>Let's write the one <em>only you</em> can.</h2>
+        <p>Coach Libra works with a small number of authors at a time. Leave your name and we'll reach out when a place opens — and tell you exactly how it works.</p>
+        <form class="waitlist" id="waitlist" novalidate>
+          <input type="email" name="email" id="email" placeholder="you@example.com" autocomplete="email" required aria-label="Email address" />
+          <button class="btn" type="submit">Request an invitation</button>
+        </form>
+        <p class="form-note">No spam, ever. Just a note when there's room at the table.</p>
+        <p class="form-done" id="formdone">❦ &nbsp;You're on the list. We'll be in touch.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="#top">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2c3 4 3 8 0 12-3-4-3-8 0-12z" fill="#7c2d27"/>
+        <path d="M12 14c2.4-3 7-3.6 9.6-2.2C19 16 15.6 18.4 12 18c-3.6.4-7-2-9.6-6.2C5 10.4 9.6 11 12 14z" fill="#bd9347"/>
+      </svg>
+      Coach Libra
+    </a>
+    <p>The book you've always had in you, finally written.</p>
+    <p>© <span id="yr"></span> Coach Libra · <a href="mailto:hello@coachlibra.com">hello@coachlibra.com</a></p>
+  </div>
+</footer>
+
+<script>
+  // year
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  // nav scrolled state
+  const nav = document.getElementById('nav');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 24);
+  onScroll(); window.addEventListener('scroll', onScroll, {passive:true});
+
+  // mobile menu
+  const toggle = document.getElementById('navtoggle');
+  const links = document.getElementById('navlinks');
+  toggle.addEventListener('click', () => links.classList.toggle('open'));
+  links.addEventListener('click', e => { if(e.target.tagName==='A') links.classList.remove('open'); });
+
+  // scroll reveal
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(en => { if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+  }, {threshold:.16, rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // waitlist (front-end only for now — wire to a Cloudflare Pages Function or form service)
+  const form = document.getElementById('waitlist');
+  const done = document.getElementById('formdone');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email');
+    if(!email.value || !email.validity.valid){ email.focus(); return; }
+    // TODO: POST to /api/waitlist (Cloudflare Pages Function) or a form provider.
+    form.style.display = 'none';
+    done.classList.add('show');
+  });
+</script>
+</body>
+</html>
