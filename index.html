@@ -167,10 +167,13 @@
   .cta-band h2{font-size:clamp(2.1rem,4.6vw,3.4rem);color:#f7efe0;max-width:18ch;margin:.3em 0 .5em}
   .cta-band h2 em{font-style:italic;color:var(--gold-soft);font-weight:400}
   .cta-band p{color:#cdbfa9;max-width:52ch;font-size:1.08rem}
-  form.waitlist{display:flex;gap:12px;margin-top:34px;max-width:520px;flex-wrap:wrap}
+  form.waitlist{display:flex;flex-direction:column;gap:12px;margin-top:34px;max-width:460px}
+  form.waitlist .name-row{display:flex;gap:12px}
+  form.waitlist .name-row input{flex:1}
   form.waitlist input{
-    flex:1;min-width:240px;background:rgba(255,255,255,.06);border:1px solid rgba(216,184,112,.35);
+    width:100%;min-width:0;background:rgba(255,255,255,.06);border:1px solid rgba(216,184,112,.35);
     color:var(--paper);padding:.95em 1.2em;border-radius:999px;font-family:inherit;font-size:1rem;outline:none;transition:border .25s,background .25s}
+  form.waitlist .btn{align-self:flex-start}
   form.waitlist input::placeholder{color:#a99c86}
   form.waitlist input:focus{border-color:var(--gold-soft);background:rgba(255,255,255,.1)}
   form.waitlist .btn{background:var(--gold);color:#241a12}
@@ -328,6 +331,10 @@
         <h2>Let's write the one <em>only you</em> can.</h2>
         <p>Coach Libra works with a small number of authors at a time. Leave your name and we'll reach out when a place opens — and tell you exactly how it works.</p>
         <form class="waitlist" id="waitlist" novalidate>
+          <div class="name-row">
+            <input type="text" name="first_name" id="first_name" placeholder="First name" autocomplete="given-name" required aria-label="First name" />
+            <input type="text" name="last_name" id="last_name" placeholder="Last name" autocomplete="family-name" required aria-label="Last name" />
+          </div>
           <input type="email" name="email" id="email" placeholder="you@example.com" autocomplete="email" required aria-label="Email address" />
           <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute!important;left:-9999px;width:1px;height:1px;overflow:hidden" />
           <button class="btn" type="submit">Request an invitation</button>
@@ -381,15 +388,26 @@
   const note = document.getElementById('formnote');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const first = document.getElementById('first_name');
+    const last = document.getElementById('last_name');
     const email = document.getElementById('email');
     const btn = form.querySelector('button');
+    if(!first.value.trim()){ first.focus(); return; }
+    if(!last.value.trim()){ last.focus(); return; }
     if(!email.value || !email.validity.valid){ email.focus(); return; }
     btn.disabled = true; btn.textContent = 'Sending…';
     try {
       const res = await fetch('https://formspree.io/f/xayzdydv', {
         method:'POST',
         headers:{'Content-Type':'application/json','Accept':'application/json'},
-        body: JSON.stringify({ email: email.value.trim(), _subject: 'New Coach Libra waitlist signup', _gotcha: (form.querySelector('[name=_gotcha]')||{}).value || '' })
+        body: JSON.stringify({
+          name: first.value.trim() + ' ' + last.value.trim(),
+          first_name: first.value.trim(),
+          last_name: last.value.trim(),
+          email: email.value.trim(),
+          _subject: 'New Coach Libra waitlist signup',
+          _gotcha: (form.querySelector('[name=_gotcha]')||{}).value || ''
+        })
       });
       if(!res.ok) throw new Error('failed');
       form.style.display = 'none';
