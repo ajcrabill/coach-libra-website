@@ -329,6 +329,7 @@
         <p>Coach Libra works with a small number of authors at a time. Leave your name and we'll reach out when a place opens — and tell you exactly how it works.</p>
         <form class="waitlist" id="waitlist" novalidate>
           <input type="email" name="email" id="email" placeholder="you@example.com" autocomplete="email" required aria-label="Email address" />
+          <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute!important;left:-9999px;width:1px;height:1px;overflow:hidden" />
           <button class="btn" type="submit">Request an invitation</button>
         </form>
         <p class="form-note" id="formnote">No spam, ever. Just a note when there's room at the table.</p>
@@ -388,7 +389,7 @@
       const res = await fetch('https://formspree.io/f/xayzdydv', {
         method:'POST',
         headers:{'Content-Type':'application/json','Accept':'application/json'},
-        body: JSON.stringify({ email: email.value.trim(), _subject: 'New Coach Libra waitlist signup' })
+        body: JSON.stringify({ email: email.value.trim(), _subject: 'New Coach Libra waitlist signup', _gotcha: (form.querySelector('[name=_gotcha]')||{}).value || '' })
       });
       if(!res.ok) throw new Error('failed');
       form.style.display = 'none';
