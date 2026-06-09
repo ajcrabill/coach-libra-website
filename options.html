@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Working with Coach Libra — Your options</title>
+<meta name="description" content="Every way you can shape how you work with Coach Libra — how you talk to her, how you share your writing, the pace, the tone, and more. It's your book, your way." />
+<meta name="robots" content="noindex, follow" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..600&family=Hanken+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f4ede0; --paper-2:#efe6d6; --ink:#211b14; --ink-soft:#5c5142;
+    --oxblood:#7c2d27; --oxblood-deep:#5e211d; --gold:#bd9347; --gold-soft:#d8b870;
+    --line:#d8ccb6; --max:920px; --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:"Hanken Grotesk",system-ui,sans-serif; font-weight:400; line-height:1.65;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden; position:relative;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:
+      radial-gradient(120% 80% at 75% -10%, #fbf6ec 0%, transparent 55%),
+      radial-gradient(120% 90% at 0% 110%, #ece0cc 0%, transparent 50%),
+      var(--paper);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  ::selection{background:var(--oxblood);color:var(--paper)}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 28px}
+  .serif{font-family:"Fraunces",Georgia,serif}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:430;line-height:1.06;letter-spacing:-.01em}
+
+  /* nav */
+  header.nav{display:flex;align-items:center;justify-content:space-between;padding:24px 28px;max-width:var(--max);margin:0 auto}
+  .brand{display:flex;align-items:center;gap:11px;font-family:"Fraunces",serif;font-weight:500;font-size:1.3rem;color:var(--ink);text-decoration:none}
+  .brand .mark{width:26px;height:26px;flex:0 0 auto}
+  .back{font-size:.92rem;font-weight:500;color:var(--ink);opacity:.78;text-decoration:none;display:inline-flex;align-items:center;gap:.45em;transition:opacity .25s}
+  .back:hover{opacity:1;color:var(--oxblood)}
+
+  /* hero */
+  .head{padding:48px 0 18px}
+  .eyebrow{font-family:"Hanken Grotesk",sans-serif;font-weight:600;font-size:.72rem;letter-spacing:.32em;text-transform:uppercase;color:var(--oxblood)}
+  .head h1{font-size:clamp(2.3rem,6vw,3.6rem);margin:.3em 0 .35em}
+  .head h1 em{font-style:italic;color:var(--oxblood);font-weight:400}
+  .head p{font-size:1.18rem;color:var(--ink-soft);max-width:58ch}
+
+  .rule-orn{display:flex;align-items:center;gap:18px;color:var(--gold);margin:34px 0 8px}
+  .rule-orn::before,.rule-orn::after{content:"";height:1px;background:var(--line);flex:1}
+  .rule-orn .glyph{font-family:"Fraunces",serif;font-size:1.05rem;color:var(--oxblood)}
+
+  /* option blocks */
+  .opt{padding:30px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:42px 1fr;gap:22px;align-items:start}
+  .opt .ico{font-family:"Fraunces",serif;font-size:1.5rem;color:var(--oxblood);line-height:1.2}
+  .opt h2{font-size:1.5rem;font-weight:480;margin-bottom:.35em}
+  .opt p{color:var(--ink-soft);font-size:1.05rem;margin-bottom:.5em}
+  .choices{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .choices li{background:linear-gradient(165deg,#faf4e9,#efe5d3);border:1px solid var(--line);border-radius:999px;padding:.34em .9em;font-size:.9rem;color:var(--ink)}
+  .choices li b{font-weight:600;color:var(--oxblood)}
+  .note{font-size:.96rem;color:var(--ink-soft);font-style:italic}
+
+  /* closing */
+  .closing{margin:46px 0 10px;background:radial-gradient(120% 140% at 80% 0%, #34211a 0%, transparent 60%),linear-gradient(160deg,#2a201a,#1c1511);color:var(--paper);border-radius:16px;padding:42px 36px;position:relative;overflow:hidden}
+  .closing::before{content:"";position:absolute;inset:16px;border:1px solid rgba(216,184,112,.3);border-radius:9px;pointer-events:none}
+  .closing h2{font-size:clamp(1.7rem,3.6vw,2.4rem);color:#f7efe0;max-width:22ch;margin-bottom:.4em}
+  .closing h2 em{font-style:italic;color:var(--gold-soft);font-weight:400}
+  .closing p{color:#cdbfa9;max-width:56ch;font-size:1.05rem}
+  .closing a{color:var(--gold-soft);text-decoration:none;border-bottom:1px solid rgba(216,184,112,.4)}
+  .closing a:hover{color:#fff}
+
+  footer{padding:40px 0 56px;border-top:1px solid var(--line);margin-top:30px}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+  .foot a.brand{font-size:1.1rem}
+  .foot p{color:var(--ink-soft);font-size:.86rem}
+  .foot a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--line)}
+  .foot a:hover{color:var(--oxblood)}
+
+  @media (max-width:640px){
+    .opt{grid-template-columns:1fr;gap:8px}
+    .opt .ico{display:none}
+    .closing{padding:30px 22px}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="brand" href="/">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 2c3 4 3 8 0 12-3-4-3-8 0-12z" fill="#7c2d27"/>
+      <path d="M12 14c2.4-3 7-3.6 9.6-2.2C19 16 15.6 18.4 12 18c-3.6.4-7-2-9.6-6.2C5 10.4 9.6 11 12 14z" fill="#bd9347"/>
+      <line x1="12" y1="14" x2="12" y2="22" stroke="#211b14" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    Coach Libra
+  </a>
+  <a class="back" href="/">← coachlibra.com</a>
+</header>
+
+<main class="wrap">
+
+  <section class="head">
+    <p class="eyebrow">Working with Coach Libra</p>
+    <h1>It's your book — <em>your way.</em></h1>
+    <p>Here's everything you can shape about how we work together. You don't have to remember any of it — just tell me what you'd like, anytime, and I'll adjust. This page is only here for when you're curious about the dials you can turn.</p>
+    <div class="rule-orn"><span class="glyph">❦</span></div>
+  </section>
+
+  <div class="opt">
+    <div class="ico">Ⅰ</div>
+    <div>
+      <h2>How you talk to me</h2>
+      <p>Type an email, attach a document, or just send a voice memo and talk it through — whatever's easiest, at any step from start to finish. If talking is easier than typing, talk. I'll handle the rest.</p>
+      <ul class="choices"><li><b>Email</b></li><li><b>Attachment</b></li><li><b>Voice memo</b></li></ul>
+    </div>
+  </div>
+
+  <div class="opt">
+    <div class="ico">Ⅱ</div>
+    <div>
+      <h2>How you share your writing</h2>
+      <p>To capture your voice, I learn from writing you've already done. Send it however you like — paste it in, attach a Word doc or PDF, drop a Google Doc link, or even a link to a talk or podcast you've given, and I'll read or listen and learn from it.</p>
+      <ul class="choices"><li>Pasted text</li><li>.docx / PDF</li><li>Google Doc link</li><li>A talk or recording</li></ul>
+      <p class="note">Lost track of what you've sent? Just ask — I'll list it back for you by name.</p>
+    </div>
+  </div>
+
+  <div class="opt">
+    <div class="ico">Ⅲ</div>
+    <div>
+      <h2>The pace</h2>
+      <p>We can move as fast or as gently as suits your life.</p>
+      <ul class="choices"><li><b>As you reply</b> — I answer within minutes</li><li><b>One batch a day</b> — a single, calm step daily</li></ul>
+    </div>
+  </div>
+
+  <div class="opt">
+    <div class="ico">Ⅳ</div>
+    <div>
+      <h2>How much at a time</h2>
+      <p>Some people like one question at a time; others want to knock out several at once. Your call.</p>
+      <ul class="choices"><li><b>Fewer</b> — one at a time</li><li><b>Normal</b></li><li><b>More</b> — a few at once</li></ul>
+    </div>
+  </div>
+
+  <div class="opt">
+    <div class="ico">Ⅴ</div>
+    <div>
+      <h2>Simple or in-depth</h2>
+      <p>I can keep things short and plain, or go deeper and more nuanced when you want to really dig in.</p>
+      <ul class="choices"><li><b>Simple</b></li><li><b>Normal</b></li><li><b>In-depth</b></li></ul>
+    </div>
+  </div>
+
+  <div class="opt">
+    <div class="ico">Ⅵ</div>
+    <div>
+      <h2>How much help</h2>
+      <p>Just the question, a little context to spark your thinking, or a suggested answer you can accept or rewrite — whatever helps you get unstuck.</p>
+      <ul class="choices"><li><b>Just the question</b></li><li><b>+ a little context</b></li><li><b>+ a suggested answer</b></li></ul>
+    </div>
+  </div>
+
+  <div class="opt">
+    <div class="ico">Ⅶ</div>
+    <div>
+      <h2>My tone</h2>
+      <p>I'm warm and encouraging by nature, but I'll meet you where you are. Want me more straight-to-the-point? Say so.</p>
+      <ul class="choices"><li><b>Warm</b> &amp; encouraging</li><li><b>Balanced</b></li><li><b>Direct</b> &amp; to the point</li></ul>
+    </div>
+  </div>
+
+  <div class="opt">
+    <div class="ico">Ⅷ</div>
+    <div>
+      <h2>You're in the driver's seat</h2>
+      <p>This is your book, and you steer it. You tell me when your voice sounds right, you shape the outline, you sign off on your first chapter, and we build each chapter from <em>your</em> own stories and words. Nothing moves forward without you.</p>
+    </div>
+  </div>
+
+  <section class="closing">
+    <h2>You won't need to remember <em>any</em> of this.</h2>
+    <p>Just tell me what you'd like — "one question a day," "be more direct," "what have I already sent?" — and I'll take it from there. When you're ready, head back to <a href="/">coachlibra.com</a>.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="/">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2c3 4 3 8 0 12-3-4-3-8 0-12z" fill="#7c2d27"/>
+        <path d="M12 14c2.4-3 7-3.6 9.6-2.2C19 16 15.6 18.4 12 18c-3.6.4-7-2-9.6-6.2C5 10.4 9.6 11 12 14z" fill="#bd9347"/>
+      </svg>
+      Coach Libra
+    </a>
+    <p>© <span id="yr"></span> Coach Libra · <a href="mailto:hello@coachlibra.com">hello@coachlibra.com</a></p>
+  </div>
+</footer>
+<script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
+</body>
+</html>
