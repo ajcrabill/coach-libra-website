@@ -10,9 +10,14 @@
 .pill{background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:.25em .8em;font-size:.85rem;color:var(--ink-soft)}
 .pill.you{background:var(--oxblood);color:#fff;border-color:var(--oxblood);font-weight:600}
 
+.ph-tools{display:flex;align-items:center;gap:10px}
+.ov-search{margin:0;max-width:260px;padding:.5em .8em;font-size:.9rem}
+.ov-hint{font-size:.8rem;margin:-6px 0 10px}
 .tablewrap{overflow-x:auto}
 table.grid{width:100%;border-collapse:collapse;font-size:.92rem}
 table.grid th{background:var(--oxblood);color:#fff;text-align:left;padding:8px 11px;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;font-weight:600;white-space:nowrap}
+table.grid th.sortable{cursor:pointer;user-select:none}
+table.grid th.sortable:hover{background:var(--oxblood-deep)}
 table.grid th.c,table.grid td.c{text-align:center}
 table.grid td{padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink)}
 table.grid tbody tr:nth-child(even){background:#f6efe0}

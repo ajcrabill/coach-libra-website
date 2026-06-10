@@ -45,21 +45,48 @@ async function verify() {
 
 // ---- overview ----
 const SHORT = { "Voice memo": "Voice", "Doc": "Doc", "Link": "Link", "Email": "Email" };
+let OV = { rows: [], methods: [], tally: {} };
+let SORT = { key: "", dir: 1 };          // "" = server order (newest-approved first)
+let SEARCH = "";
+
+function ovValue(r, key) {
+  if (key === "author") return (r.author || "").toLowerCase();
+  if (key === "title") return (r.title || "").toLowerCase();
+  if (key === "stage") return (r.stage + " " + r.status || "").toLowerCase();
+  if (key === "court") return (r.court || "").toLowerCase();
+  if (key === "voice") return (r.voice || "").toLowerCase();
+  return (r.inputs && r.inputs[key]) || 0;     // input-method counts (numeric)
+}
+function th(key, label, center) {
+  const arrow = SORT.key === key ? (SORT.dir > 0 ? " ▲" : " ▼") : "";
+  return `<th class="${center ? "c " : ""}sortable" data-sort="${key}">${esc(label)}${arrow}</th>`;
+}
 async function loadOverview() {
   const d = await (await api("/admin/overview")).json();
-  const methods = d.input_methods || [];
-  const t = d.tally || {};
+  OV = { rows: d.rows || [], methods: d.input_methods || [], tally: d.tally || {} };
+  renderOverview();
+}
+function renderOverview() {
+  const { methods, tally: t } = OV;
   $("tally").innerHTML =
-    `<span class="pill">${(d.rows || []).length} projects</span>` +
+    `<span class="pill">${OV.rows.length} projects</span>` +
     `<span class="pill you">${t.YOU || 0} need you</span>` +
     `<span class="pill">${t.author || 0} on author</span>` +
     `<span class="pill">${t.system || 0} in progress</span>` +
     `<span class="pill">${t.done || 0} delivered</span>`;
-  const head =
-    `<tr><th>Author</th><th>Book</th><th>Stage</th><th>Voice-print</th>` +
-    methods.map(mth => `<th class="c">${esc(SHORT[mth] || mth)}</th>`).join("") +
-    `<th>Court</th></tr>`;
-  const body = (d.rows || []).map(r => {
+  const q = SEARCH.trim().toLowerCase();
+  let rows = OV.rows.filter(r => !q ||
+    [r.author, r.title, r.stage, r.status].some(v => (v || "").toLowerCase().includes(q)));
+  if (SORT.key) {
+    rows = rows.slice().sort((a, b) => {
+      const va = ovValue(a, SORT.key), vb = ovValue(b, SORT.key);
+      return (va < vb ? -1 : va > vb ? 1 : 0) * SORT.dir;
+    });
+  }
+  const head = th("author", "Author") + th("title", "Book") + th("stage", "Stage") +
+    th("voice", "Voice-print") + methods.map(mth => th(mth, SHORT[mth] || mth, true)).join("") +
+    th("court", "Court");
+  const body = rows.map(r => {
     const you = r.court_key === "YOU";
     const cells = methods.map(mth => `<td class="c">${r.inputs && r.inputs[mth] ? r.inputs[mth] : "·"}</td>`).join("");
     return `<tr class="${you ? "you" : ""}">` +
@@ -67,11 +94,17 @@ async function loadOverview() {
       `<td>${esc(r.stage)} <span class="status">(${esc(r.status)})</span></td>` +
       `<td class="soft">${esc(r.voice)}</td>${cells}` +
       `<td>${you ? "<b>" + esc(r.court) + " ◀</b>" : esc(r.court)}</td></tr>`;
-  }).join("") || `<tr><td colspan="${5 + methods.length}" class="soft">No active projects.</td></tr>`;
-  $("overview").innerHTML = `<table class="grid"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+  }).join("") || `<tr><td colspan="${5 + methods.length}" class="soft">${q ? "No matches." : "No active projects."}</td></tr>`;
+  $("overview").innerHTML = `<table class="grid"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  $("overview").querySelectorAll("th[data-sort]").forEach(h =>
+    h.addEventListener("click", () => {
+      const k = h.dataset.sort;
+      if (SORT.key === k) SORT.dir *= -1; else { SORT.key = k; SORT.dir = 1; }
+      renderOverview();
+    }));
 
-  // needs-your-attention list, with a deliver button where a book is ready to release
-  const needs = (d.rows || []).filter(r => r.court_key === "YOU");
+  // needs-your-attention list (always full set, not filtered)
+  const needs = OV.rows.filter(r => r.court_key === "YOU");
   $("needs").innerHTML = needs.length
     ? `<ul class="needs">` + needs.map(r =>
       `<li><span><b>${esc(r.author)}</b> — ${esc(r.title)} <span class="soft">(${esc(r.status)})</span></span>` +
@@ -154,6 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("abtn-back").addEventListener("click", () => { $("astep-code").hidden = true; $("astep-email").hidden = false; });
   $("abtn-signout").addEventListener("click", () => { setToken(null); show("signin"); });
   $("abtn-refresh").addEventListener("click", () => loadAll());
+  $("ov-search").addEventListener("input", e => { SEARCH = e.target.value; renderOverview(); });
   $("ap-btn").addEventListener("click", approve);
   $("nb-btn").addEventListener("click", newBook);
   $("al-btn").addEventListener("click", linkAlias);

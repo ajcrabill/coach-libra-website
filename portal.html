@@ -32,16 +32,22 @@ bodyclass: portal-page
       <button id="btn-signout" class="link">sign out</button>
     </div>
 
+    <!-- book-specific: flip between projects with the tabs -->
+    <div id="book-tabs" class="booktabs" hidden></div>
+
     <div class="panel"><h2>Where your book is</h2><div id="progress-body"></div></div>
-    <div class="panel"><h2>How we work together</h2><div id="settings-body"></div></div>
     <div class="panel"><h2>Your downloads</h2><ul id="deliverables-list"></ul></div>
     <div class="panel">
       <h2>Send me writing</h2>
-      <p class="muted">Add a document, PDF, or recording to help capture your voice.</p>
+      <p class="muted" id="upload-help">Add a document, PDF, or recording to help capture your voice.</p>
       <input id="file" type="file" />
       <div><button id="btn-upload" class="btn">Upload</button></div>
       <p id="upload-note" class="note"></p>
     </div>
+
+    <!-- account-level -->
+    <div class="acct-sep"></div>
+    <div class="panel"><h2>How we work together</h2><div id="settings-body"></div></div>
     <div class="panel">
       <h2>Your info</h2>
       <label>Name <input id="profile-name" type="text" /></label>

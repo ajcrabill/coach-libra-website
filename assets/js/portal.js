@@ -43,7 +43,8 @@ async function verify() {
 }
 
 // ---- dashboard ----
-async function loadDashboard() { await Promise.all([loadMe(), loadProgress(), loadDeliverables(), loadSettings()]); }
+let BOOKS = [], CURRENT = null, VOICE_LINE = "";   // merged book list + selected book id
+async function loadDashboard() { await Promise.all([loadMe(), loadBooks(), loadSettings()]); }
 async function loadMe() {
   const d = await (await api("/me")).json();
   $("me-name").textContent = (d.name||"").split(" ")[0] || "there";
@@ -75,16 +76,39 @@ function bookCard(b, showTitle) {
     `<div class="muted">${court}</div></div></div>` +
     `<p class="next"><b>Next:</b> ${esc(b.next)}</p>${last}</div>`;
 }
-async function loadProgress() {
-  const d = await (await api("/me/progress")).json();
-  const books = d.books || [];
-  let vp = d.voiceprint ? `<p class="muted vp-line">Voice captured: ${d.voiceprint.pieces} piece(s)${d.voiceprint.words ? ", ~" + Math.round(d.voiceprint.words / 1000) + "k words" : ""}.</p>` : "";
-  if (!books.length) {
-    $("progress-body").innerHTML = `<p class="next"><b>Next:</b> ${esc(d.next_overall || "We'll be in touch soon.")}</p>${vp}`;
+async function loadBooks() {
+  const [pg, dl] = await Promise.all([
+    (await api("/me/progress")).json(), (await api("/me/deliverables")).json()]);
+  const dmap = {}; (dl.books || []).forEach(b => dmap[b.id] = b.items || []);
+  BOOKS = (pg.books || []).map(b => ({ id: b.manuscript_id, title: b.title, prog: b, items: dmap[b.manuscript_id] || [] }));
+  VOICE_LINE = pg.voiceprint ? `<p class="muted vp-line">Voice captured: ${pg.voiceprint.pieces} piece(s)${pg.voiceprint.words ? ", ~" + Math.round(pg.voiceprint.words / 1000) + "k words" : ""}.</p>` : "";
+  if (!BOOKS.length) CURRENT = null;
+  else if (!BOOKS.some(b => b.id === CURRENT)) CURRENT = BOOKS[0].id;
+  renderTabs();
+  renderBook(pg);
+}
+function renderTabs() {
+  const tabs = $("book-tabs");
+  if (BOOKS.length <= 1) { tabs.hidden = true; tabs.innerHTML = ""; return; }
+  tabs.hidden = false;
+  tabs.innerHTML = BOOKS.map(b =>
+    `<button class="booktab ${b.id === CURRENT ? "on" : ""}" data-book="${b.id}">${esc(b.title || "Untitled book")}</button>`).join("");
+  tabs.querySelectorAll("button[data-book]").forEach(btn =>
+    btn.addEventListener("click", () => { CURRENT = Number(btn.dataset.book); renderTabs(); renderBook(); }));
+}
+function renderBook(pg) {
+  if (!BOOKS.length) {
+    const next = pg ? (pg.next_overall || "We'll be in touch soon.") : "We'll be in touch soon.";
+    $("progress-body").innerHTML = `<p class="next"><b>Next:</b> ${esc(next)}</p>${VOICE_LINE}`;
+    $("deliverables-list").innerHTML = `<li><span class="muted">Your downloads will appear here as your book takes shape.</span></li>`;
+    $("upload-help").textContent = "Add a document, PDF, or recording to help capture your voice.";
     return;
   }
-  const multi = books.length > 1;   // label each book only when there's more than one
-  $("progress-body").innerHTML = books.map(b => bookCard(b, multi)).join("") + vp;
+  const b = BOOKS.find(x => x.id === CURRENT) || BOOKS[0];
+  $("progress-body").innerHTML = bookCard(b.prog, false) + VOICE_LINE;
+  renderDeliverables(b);
+  $("upload-help").textContent = "Add a document, PDF, or recording for " +
+    (b.title ? "“" + b.title + "”" : "this book") + ".";
 }
 const DELIV_DESC = {
   profile: "Your book profile on one page — who it's for, the promise, your unique angle, what readers feel, and how it's organized. It unlocks once every part of your profile is captured.",
@@ -93,28 +117,20 @@ const DELIV_DESC = {
   chapter1: "Your first chapter, formatted and ready to read — the first real taste of your book in your voice.",
   manuscript: "Your complete, finished book — every chapter, edited and assembled, ready to share.",
 };
-async function loadDeliverables() {
-  const d = await (await api("/me/deliverables")).json();
-  const books = d.books || [];
-  if (!books.length) {
-    $("deliverables-list").innerHTML = `<li><span class="muted">Your downloads will appear here as your book takes shape.</span></li>`;
-    return;
-  }
-  const multi = books.length > 1;   // only label books when there's more than one
-  $("deliverables-list").innerHTML = books.map(bk =>
-    (multi ? `<li class="book-head">${esc(bk.title)}</li>` : "") +
-    bk.items.map(it =>
-      `<li class="deliv"><div class="deliv-row">` +
-      `<button class="deliv-title" data-toggle>${esc(it.label)}</button>` +
-      (it.available
-        ? `<button class="btn small" data-book="${bk.id}" data-kind="${it.kind}">Download</button>`
-        : `<span class="soon">not ready yet</span>`) +
-      `</div><div class="deliv-desc"><div class="dd-inner"><p>${esc(DELIV_DESC[it.kind] || "")}</p></div></div></li>`).join("")
-  ).join("");
-  $("deliverables-list").querySelectorAll("button[data-kind]").forEach(b =>
-    b.addEventListener("click", () => downloadKind(b.dataset.book, b.dataset.kind, b)));
-  $("deliverables-list").querySelectorAll("button[data-toggle]").forEach(b =>
-    b.addEventListener("click", () => b.closest(".deliv").classList.toggle("open")));
+function renderDeliverables(b) {
+  const items = b.items || [];
+  $("deliverables-list").innerHTML = items.length ? items.map(it =>
+    `<li class="deliv"><div class="deliv-row">` +
+    `<button class="deliv-title" data-toggle>${esc(it.label)}</button>` +
+    (it.available
+      ? `<button class="btn small" data-book="${b.id}" data-kind="${it.kind}">Download</button>`
+      : `<span class="soon">not ready yet</span>`) +
+    `</div><div class="deliv-desc"><div class="dd-inner"><p>${esc(DELIV_DESC[it.kind] || "")}</p></div></div></li>`).join("")
+    : `<li><span class="muted">Downloads will appear here as this book takes shape.</span></li>`;
+  $("deliverables-list").querySelectorAll("button[data-kind]").forEach(x =>
+    x.addEventListener("click", () => downloadKind(x.dataset.book, x.dataset.kind, x)));
+  $("deliverables-list").querySelectorAll("button[data-toggle]").forEach(x =>
+    x.addEventListener("click", () => x.closest(".deliv").classList.toggle("open")));
 }
 async function downloadKind(bookId, kind, btn) {
   btn.disabled = true; const old = btn.textContent; btn.textContent = "Preparing…";
@@ -168,6 +184,7 @@ async function doUpload() {
   $("btn-upload").disabled = true; note("upload-note", "Uploading…", true);
   try {
     const fd = new FormData(); fd.append("file", f);
+    if (CURRENT) fd.append("manuscript_id", String(CURRENT));   // tag the selected book
     const res = await fetch(API + "/me/uploads", { method: "POST", headers: { Authorization: "Bearer " + token() }, body: fd });
     note("upload-note", res.ok ? "Got it — thank you! I'll fold it in." : "That didn't upload. Try a different file.", res.ok);
   } catch (e) { note("upload-note", "That didn't upload. Try again."); }

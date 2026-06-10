@@ -34,8 +34,12 @@ bodyclass: portal-page
 
     <div class="panel">
       <div class="panel-head"><h2>All projects</h2>
-        <button id="abtn-refresh" class="btn small">Refresh</button></div>
+        <div class="ph-tools">
+          <input id="ov-search" class="ov-search" type="search" placeholder="Search author, book, stage…" />
+          <button id="abtn-refresh" class="btn small">Refresh</button>
+        </div></div>
       <div id="tally" class="tally"></div>
+      <p class="muted ov-hint">Newest-approved first by default · click any column to sort</p>
       <div id="overview" class="tablewrap"></div>
     </div>
 
