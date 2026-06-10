@@ -57,6 +57,7 @@ label{display:block;margin-bottom:.6em;color:var(--ink-soft)}
 
 /* last email + info rows */
 .lastmail{margin-top:14px;font-size:.92rem;color:var(--ink)}
+.vp-line{margin-top:16px}
 .infoline{display:flex;gap:12px;align-items:baseline;margin-top:.7em;font-size:.95rem}
 .info-label{font-weight:600;color:var(--oxblood);min-width:70px}
 .info-val{color:var(--ink)}

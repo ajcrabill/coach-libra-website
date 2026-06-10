@@ -63,7 +63,7 @@ function esc(s){ return (s||"").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",
 async function loadProgress() {
   const d = await (await api("/me/progress")).json();
   const court = d.court === "you" ? "It's your turn" : d.court === "done" ? "Done!" : "We're on it";
-  let vp = d.voiceprint ? `<p class="muted">Voice captured: ${d.voiceprint.pieces} piece(s)${d.voiceprint.words ? ", ~" + Math.round(d.voiceprint.words/1000) + "k words" : ""}.</p>` : "";
+  let vp = d.voiceprint ? `<p class="muted vp-line">Voice captured: ${d.voiceprint.pieces} piece(s)${d.voiceprint.words ? ", ~" + Math.round(d.voiceprint.words/1000) + "k words" : ""}.</p>` : "";
   // five-step journey: which step are they on?
   const stages = d.stages || [], cur = d.stage || 0;
   let steps = "";
@@ -73,7 +73,7 @@ async function loadProgress() {
       return `<li class="${cls}"><span class="num">${n < cur ? "✓" : n}</span><span class="lbl">${esc(label)}</span></li>`;
     }).join("") + `</ol>`;
   }
-  let last = d.last_email ? `<p class="lastmail">📩 Last note from me: <b>${esc(d.last_email.subject)}</b>` +
+  let last = d.last_email ? `<p class="lastmail">📩 Last email from me: <b>${esc(d.last_email.subject)}</b>` +
     (d.last_email.at ? ` <span class="muted">· ${fmtWhen(d.last_email.at)}</span>` : "") + `</p>` : "";
   $("progress-body").innerHTML =
     steps +
