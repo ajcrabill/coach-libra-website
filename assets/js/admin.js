@@ -38,7 +38,7 @@ async function verify() {
   try {
     const res = await api("/admin/auth/verify", { method: "POST", body: JSON.stringify({ email, code }) });
     if (!res.ok) { note("asignin-note", "That code didn't work. Check it and try again."); }
-    else { const d = await res.json(); setToken(d.token); await loadOverview(); show("dashboard"); }
+    else { const d = await res.json(); setToken(d.token); await loadAll(); show("dashboard"); }
   } catch (e) { note("asignin-note", "Something went wrong — try again."); }
   $("abtn-verify").disabled = false; $("abtn-verify").textContent = "Sign in";
 }
@@ -81,6 +81,32 @@ async function loadOverview() {
     : `<p class="soft">Nothing needs you right now. 🎉</p>`;
   $("needs").querySelectorAll("button[data-deliver]").forEach(b =>
     b.addEventListener("click", () => doDeliver(b.dataset.deliver, b)));
+}
+
+async function loadAll() { await Promise.all([loadOverview(), loadWaitlist()]); }
+
+async function loadWaitlist() {
+  const d = await (await api("/admin/waitlist")).json();
+  const items = d.items || [];
+  $("waitlist").innerHTML = items.length
+    ? `<ul class="needs">` + items.map(it =>
+      `<li><span><b>${esc(it.name || it.email)}</b> <span class="soft">${esc(it.email)}</span>` +
+      (it.note ? ` — ${esc(it.note)}` : "") + `</span>` +
+      `<span class="wl-actions"><button class="btn small" data-wl-approve="${it.id}">Approve</button>` +
+      `<button class="link" data-wl-dismiss="${it.id}">dismiss</button></span></li>`).join("") + `</ul>`
+    : `<p class="soft">No one waiting right now.</p>`;
+  $("waitlist").querySelectorAll("button[data-wl-approve]").forEach(b =>
+    b.addEventListener("click", () => wlAction("/admin/waitlist/approve", b.dataset.wlApprove, b)));
+  $("waitlist").querySelectorAll("button[data-wl-dismiss]").forEach(b =>
+    b.addEventListener("click", () => wlAction("/admin/waitlist/dismiss", b.dataset.wlDismiss, b)));
+}
+async function wlAction(path, id, btn) {
+  btn.disabled = true;
+  try {
+    const res = await api(path, { method: "POST", body: JSON.stringify({ entry_id: Number(id) }) });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.detail || "Couldn't do that."); btn.disabled = false; return; }
+    await loadAll();
+  } catch (e) { btn.disabled = false; }
 }
 
 async function doDeliver(msId, btn) {
@@ -127,10 +153,10 @@ document.addEventListener("DOMContentLoaded", () => {
   $("aemail").addEventListener("keydown", e => { if (e.key === "Enter") sendCode(); });
   $("abtn-back").addEventListener("click", () => { $("astep-code").hidden = true; $("astep-email").hidden = false; });
   $("abtn-signout").addEventListener("click", () => { setToken(null); show("signin"); });
-  $("abtn-refresh").addEventListener("click", () => loadOverview());
+  $("abtn-refresh").addEventListener("click", () => loadAll());
   $("ap-btn").addEventListener("click", approve);
   $("nb-btn").addEventListener("click", newBook);
   $("al-btn").addEventListener("click", linkAlias);
-  if (token()) { loadOverview().then(() => show("dashboard")).catch(() => show("signin")); }
+  if (token()) { loadAll().then(() => show("dashboard")).catch(() => show("signin")); }
   else show("signin");
 });

@@ -4,7 +4,8 @@ const io = new IntersectionObserver((entries) => {
 }, {threshold:.16, rootMargin:'0px 0px -8% 0px'});
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-// waitlist → Formspree
+// waitlist → Coach Libra box API (stored in our own DB; approvable from /admin)
+const WAITLIST_API = 'https://esbserver-m4.taild49f53.ts.net/waitlist';
 const form = document.getElementById('waitlist');
 const done = document.getElementById('formdone');
 const note = document.getElementById('formnote');
@@ -19,15 +20,13 @@ if (form) form.addEventListener('submit', async (e) => {
   if(!email.value || !email.validity.valid){ email.focus(); return; }
   btn.disabled = true; btn.textContent = 'Sending…';
   try {
-    const res = await fetch('https://formspree.io/f/xayzdydv', {
+    const res = await fetch(WAITLIST_API, {
       method:'POST',
       headers:{'Content-Type':'application/json','Accept':'application/json'},
       body: JSON.stringify({
-        name: first.value.trim() + ' ' + last.value.trim(),
         first_name: first.value.trim(),
         last_name: last.value.trim(),
         email: email.value.trim(),
-        _subject: 'New Coach Libra waitlist signup',
         _gotcha: (form.querySelector('[name=_gotcha]')||{}).value || ''
       })
     });
