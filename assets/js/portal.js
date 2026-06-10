@@ -44,15 +44,42 @@ async function verify() {
 
 // ---- dashboard ----
 async function loadDashboard() { await Promise.all([loadMe(), loadProgress(), loadDeliverables(), loadSettings()]); }
-async function loadMe() { const d = await (await api("/me")).json(); $("me-name").textContent = (d.name||"").split(" ")[0] || "there"; $("profile-name").value = d.name || ""; }
+async function loadMe() {
+  const d = await (await api("/me")).json();
+  $("me-name").textContent = (d.name||"").split(" ")[0] || "there";
+  $("profile-name").value = d.name || "";
+  $("me-email").textContent = d.email || "";
+  const al = (d.aliases || []);
+  $("me-aliases").hidden = al.length === 0;
+  $("me-aliases-val").textContent = al.join(", ");
+}
+function fmtWhen(iso) {
+  if (!iso) return "";
+  const dt = new Date(iso); if (isNaN(dt)) return "";
+  return dt.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + ", " +
+         dt.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+function esc(s){ return (s||"").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
 async function loadProgress() {
   const d = await (await api("/me/progress")).json();
   const court = d.court === "you" ? "It's your turn" : d.court === "done" ? "Done!" : "We're on it";
   let vp = d.voiceprint ? `<p class="muted">Voice captured: ${d.voiceprint.pieces} piece(s)${d.voiceprint.words ? ", ~" + Math.round(d.voiceprint.words/1000) + "k words" : ""}.</p>` : "";
+  // five-step journey: which step are they on?
+  const stages = d.stages || [], cur = d.stage || 0;
+  let steps = "";
+  if (stages.length) {
+    steps = `<ol class="steps">` + stages.map((label, i) => {
+      const n = i + 1, cls = n < cur ? "done" : n === cur ? "current" : "todo";
+      return `<li class="${cls}"><span class="num">${n < cur ? "✓" : n}</span><span class="lbl">${esc(label)}</span></li>`;
+    }).join("") + `</ol>`;
+  }
+  let last = d.last_email ? `<p class="lastmail">📩 Last note from me: <b>${esc(d.last_email.subject)}</b>` +
+    (d.last_email.at ? ` <span class="muted">· ${fmtWhen(d.last_email.at)}</span>` : "") + `</p>` : "";
   $("progress-body").innerHTML =
-    `<div class="bigstep"><span class="dot ${d.court}"></span><div><div class="stepname">${d.step_label}</div>
+    steps +
+    `<div class="bigstep"><span class="dot ${d.court}"></span><div><div class="stepname">${esc(d.step_label)}</div>
      <div class="muted">${court}</div></div></div>
-     <p class="next"><b>Next:</b> ${d.next}</p>${vp}`;
+     <p class="next"><b>Next:</b> ${esc(d.next)}</p>${last}${vp}`;
 }
 async function loadDeliverables() {
   const d = await (await api("/me/deliverables")).json();
@@ -70,7 +97,7 @@ async function downloadKind(kind, btn) {
     const res = await api("/me/deliverables/" + kind + "/download");
     if (!res.ok) throw new Error();
     const blob = await res.blob(); const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = kind + ".docx"; a.click();
+    const a = document.createElement("a"); a.href = url; a.download = kind + ".pdf"; a.click();
     URL.revokeObjectURL(url);
   } catch (e) { alert("That file isn't ready yet."); }
   btn.disabled = false; btn.textContent = old;

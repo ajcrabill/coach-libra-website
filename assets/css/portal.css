@@ -40,4 +40,22 @@ input[type=email],input[type=text],#code,#profile-name{width:100%;max-width:340p
 .seg button{background:transparent;border:none;padding:.4em .85em;font:inherit;font-size:.85rem;cursor:pointer;color:var(--ink-soft)}
 .seg button.on{background:var(--oxblood);color:#fff}
 label{display:block;margin-bottom:.6em;color:var(--ink-soft)}
-@media(max-width:640px){.dial{justify-content:flex-start}}
+
+/* five-step journey indicator */
+.steps{list-style:none;display:flex;padding:0;margin:0 0 20px}
+.steps li{flex:1;text-align:center;position:relative;font-size:.78rem}
+.steps li .num{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;margin:0 auto 7px;font-weight:600;font-size:.9rem;background:var(--paper-2);color:var(--ink-soft);border:2px solid var(--line);position:relative;z-index:1}
+.steps li .lbl{display:block;color:var(--ink-soft);line-height:1.25;padding:0 4px}
+.steps li::before{content:"";position:absolute;top:15px;left:-50%;width:100%;height:2px;background:var(--line);z-index:0}
+.steps li:first-child::before{display:none}
+.steps li.done .num{background:#3f6b46;color:#fff;border-color:#3f6b46}
+.steps li.done::before,.steps li.current::before{background:#3f6b46}
+.steps li.current .num{background:var(--oxblood);color:#fff;border-color:var(--oxblood);box-shadow:0 0 0 4px rgba(124,45,39,.15)}
+.steps li.current .lbl{color:var(--ink);font-weight:600}
+
+/* last email + info rows */
+.lastmail{margin-top:14px;font-size:.92rem;color:var(--ink)}
+.infoline{display:flex;gap:12px;align-items:baseline;margin-top:.7em;font-size:.95rem}
+.info-label{font-weight:600;color:var(--oxblood);min-width:70px}
+.info-val{color:var(--ink)}
+@media(max-width:640px){.dial{justify-content:flex-start}.steps li{font-size:.68rem}.steps li .num{width:26px;height:26px}}
