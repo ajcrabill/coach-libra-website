@@ -57,6 +57,14 @@ label{display:block;margin-bottom:.6em;color:var(--ink-soft)}
 #btn-save-profile{margin-top:1.1em}
 #btn-upload{margin-top:.9em}
 
+/* "or paste a link" divider + link row */
+.or-sep{display:flex;align-items:center;text-align:center;color:var(--ink-soft);font-size:.85rem;margin:18px 0 6px}
+.or-sep::before,.or-sep::after{content:"";flex:1;height:1px;background:var(--line)}
+.or-sep span{padding:0 .8em}
+.link-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.link-row input{margin:0;flex:1 1 260px}
+.link-row .btn{flex:0 0 auto}
+
 /* book title editor */
 .book-rename{margin-bottom:18px;padding-bottom:16px;border-bottom:1px dotted var(--line)}
 .rename-label{display:block;margin-bottom:.3em;color:var(--ink-soft);font-size:.9rem}

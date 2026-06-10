@@ -221,6 +221,18 @@ async function doUpload() {
   } catch (e) { note("upload-note", "That didn't upload. Try again."); }
   $("btn-upload").disabled = false; $("file").value = "";
 }
+async function doAddLink() {
+  const url = $("link-url").value.trim();
+  if (!url) { $("link-url").focus(); return; }
+  $("btn-link").disabled = true; note("link-note", "Adding…", true);
+  try {
+    const body = { url }; if (CURRENT) body.manuscript_id = CURRENT;
+    const res = await api("/me/links", { method: "POST", body: JSON.stringify(body) });
+    if (res.ok) { note("link-note", "Got it — thank you! I'll fold it in.", true); $("link-url").value = ""; }
+    else { const e = await res.json().catch(() => ({})); note("link-note", e.detail || "That link didn't work — check it and try again.", false); }
+  } catch (e) { note("link-note", "Something went wrong — try again.", false); }
+  $("btn-link").disabled = false;
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   $("btn-send").addEventListener("click", sendCode);
@@ -230,6 +242,8 @@ document.addEventListener("DOMContentLoaded", () => {
   $("btn-back").addEventListener("click", () => { $("step-code").hidden = true; $("step-email").hidden = false; });
   $("btn-signout").addEventListener("click", () => { setToken(null); show("signin"); });
   $("btn-upload").addEventListener("click", doUpload);
+  $("btn-link").addEventListener("click", doAddLink);
+  $("link-url").addEventListener("keydown", e => { if (e.key === "Enter") doAddLink(); });
   $("btn-save-profile").addEventListener("click", saveProfile);
   if (token()) { loadDashboard().then(() => show("dashboard")).catch(() => show("signin")); }
   else show("signin");
