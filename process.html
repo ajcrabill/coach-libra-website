@@ -69,6 +69,12 @@
   .quiet{opacity:.85}
   .quiet .no{color:var(--gold)}
 
+  /* sibling pages */
+  .alsohelps{margin:36px 0 0;font-size:1.06rem;color:var(--ink-soft);text-align:center;line-height:1.7}
+  .alsohelps a{color:var(--oxblood);text-decoration:none;font-weight:600;border-bottom:1px solid var(--gold-soft);padding-bottom:1px}
+  .alsohelps a:hover{color:var(--oxblood-deep)}
+  .alsohelps .dot{color:var(--gold);margin:0 .55em}
+
   /* closing */
   .closing{margin:46px 0 10px;background:radial-gradient(120% 140% at 80% 0%, #34211a 0%, transparent 60%),linear-gradient(160deg,#2a201a,#1c1511);color:var(--paper);border-radius:16px;padding:42px 36px;position:relative;overflow:hidden}
   .closing::before{content:"";position:absolute;inset:16px;border:1px solid rgba(216,184,112,.3);border-radius:9px;pointer-events:none}
@@ -185,6 +191,8 @@
     </div>
 
   </div>
+
+  <p class="alsohelps">Two more pages, whenever they'd help — <a href="/options">the dials you can adjust</a> <span class="dot">•</span> <a href="/shortcuts">the things you can just say</a></p>
 
   <section class="closing">
     <h2>Easy for you. <em>Unmistakably yours.</em></h2>
