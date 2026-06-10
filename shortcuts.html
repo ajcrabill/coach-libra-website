@@ -93,6 +93,13 @@
     .opt .ico{display:none}
     .closing{padding:30px 22px}
   }
+  /* shared top-nav (matches the home page) */
+  .nav-links{display:flex;align-items:center;gap:26px;flex-wrap:wrap;justify-content:flex-end}
+  .nav-links a{color:var(--ink);text-decoration:none;font-size:.93rem;font-weight:500;opacity:.82;transition:opacity .25s,color .25s}
+  .nav-links a:hover{opacity:1;color:var(--oxblood)}
+  .nav-links a.btn{opacity:1}
+  .btn{display:inline-flex;align-items:center;gap:.5em;background:var(--oxblood);color:#fff;font-family:"Hanken Grotesk",sans-serif;font-weight:600;font-size:.92rem;padding:.55em 1.15em;border-radius:999px;text-decoration:none;transition:transform .25s,background .25s}
+  .btn:hover{background:var(--oxblood-deep);transform:translateY(-1px);color:#fff}
 </style>
 </head>
 <body>
@@ -106,7 +113,13 @@
     </svg>
     Coach Libra
   </a>
-  <a class="back" href="/">← coachlibra.com</a>
+  <nav class="nav-links">
+    <a href="/#how">How it works</a>
+    <a href="/#craft">The craft</a>
+    <a href="/#who">Who it's for</a>
+    <a class="cta btn" href="/#begin">Begin your book</a>
+    <a href="/help">Help</a>
+  </nav>
 </header>
 
 <main class="wrap">
@@ -206,6 +219,7 @@
       </svg>
       Coach Libra
     </a>
+    <p>The book you've always had in you, finally written.</p>
     <p>© <span id="yr"></span> Coach Libra · <a href="mailto:hello@coachlibra.com">hello@coachlibra.com</a></p>
   </div>
 </footer>
