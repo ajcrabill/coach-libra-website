@@ -1,0 +1,52 @@
+---
+layout: default
+title: "Your portal — Coach Libra"
+noindex: true
+pageCss: portal
+pageScript: portal
+bodyclass: portal-page
+---
+<main class="wrap portal">
+
+  <section id="view-signin" hidden>
+    <div class="card">
+      <h1>Your portal</h1>
+      <p class="muted">Sign in with your email — I'll send you a 6-digit code.</p>
+      <div id="step-email">
+        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" />
+        <div><button id="btn-send" class="btn">Send my code</button></div>
+      </div>
+      <div id="step-code" hidden>
+        <p class="muted">Enter the code I emailed to <b id="email-echo"></b>.</p>
+        <input id="code" inputmode="numeric" maxlength="6" placeholder="••••••" />
+        <div><button id="btn-verify" class="btn">Sign in</button>
+        &nbsp; <button id="btn-back" class="link">use a different email</button></div>
+      </div>
+      <p id="signin-note" class="note"></p>
+    </div>
+  </section>
+
+  <section id="view-dashboard" hidden>
+    <div class="dash-head">
+      <h1>Welcome back, <span id="me-name">there</span>.</h1>
+      <button id="btn-signout" class="link">sign out</button>
+    </div>
+
+    <div class="panel"><h2>Where your book is</h2><div id="progress-body"></div></div>
+    <div class="panel"><h2>Your downloads</h2><ul id="deliverables-list"></ul></div>
+    <div class="panel"><h2>How we work together</h2><div id="settings-body"></div></div>
+    <div class="panel">
+      <h2>Send me writing</h2>
+      <p class="muted">Add a document, PDF, or recording to help capture your voice.</p>
+      <input id="file" type="file" />
+      <div><button id="btn-upload" class="btn">Upload</button></div>
+      <p id="upload-note" class="note"></p>
+    </div>
+    <div class="panel">
+      <h2>Your info</h2>
+      <label>Name <input id="profile-name" type="text" /></label>
+      <button id="btn-save-profile" class="btn">Save</button>
+    </div>
+  </section>
+
+</main>
