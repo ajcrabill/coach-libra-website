@@ -114,19 +114,28 @@ async function downloadKind(bookId, kind, btn) {
 async function loadSettings() {
   const d = await (await api("/me/settings")).json();
   const dials = [
-    ["tone", "My tone", { warm: "Warm", balanced: "Balanced", direct: "Direct" }],
-    ["batch", "Questions at a time", { fewer: "Fewer", normal: "Normal", more: "More" }],
-    ["complexity", "Depth", { simple: "Simple", normal: "Normal", complex: "In-depth" }],
-    ["cadence", "Pace", { as_completed: "As I reply", daily: "One a day" }],
-    ["handholding", "How much help", { less: "Less", normal: "Normal", more: "More" }],
+    ["tone", "My tone", { warm: "Warm", balanced: "Balanced", direct: "Direct" },
+     "How I sound when I write to you — warm and encouraging, an even balance, or direct and to the point."],
+    ["batch", "Questions at a time", { fewer: "Fewer", normal: "Normal", more: "More" },
+     "How much I ask at once. Fewer keeps each step light; more lets you cover ground faster when you're in a groove."],
+    ["complexity", "Depth", { simple: "Simple", normal: "Normal", complex: "In-depth" },
+     "How deep we go. Simple keeps things clear and plain; in-depth digs into nuance and detail."],
+    ["cadence", "Pace", { as_completed: "As I reply", daily: "One a day" },
+     "How often we move forward — as soon as you reply, or one calm step each day."],
+    ["handholding", "How much help", { less: "Less", normal: "Normal", more: "More" },
+     "How much I guide you along the way — a lighter touch, or more reassurance and direction at each step."],
   ];
-  $("settings-body").innerHTML = dials.map(([key, label, opts]) =>
-    `<div class="dial"><span>${label}</span><span class="seg" data-key="${key}">` +
+  $("settings-body").innerHTML = dials.map(([key, label, opts, desc]) =>
+    `<div class="dial" data-dial="${key}"><div class="dial-row">` +
+    `<button class="dial-title" data-toggle="${key}">${esc(label)}</button>` +
+    `<span class="seg" data-key="${key}">` +
     Object.entries(opts).map(([v, t]) =>
-      `<button class="${d.settings[key]===v?'on':''}" data-key="${key}" data-val="${v}">${t}</button>`).join("") +
-    `</span></div>`).join("");
+      `<button class="${d.settings[key]===v?'on':''}" data-key="${key}" data-val="${v}">${esc(t)}</button>`).join("") +
+    `</span></div><div class="dial-desc"><div class="dd-inner"><p>${esc(desc)}</p></div></div></div>`).join("");
   $("settings-body").querySelectorAll("button[data-val]").forEach(b =>
     b.addEventListener("click", () => saveSetting(b.dataset.key, b.dataset.val)));
+  $("settings-body").querySelectorAll("button[data-toggle]").forEach(b =>
+    b.addEventListener("click", () => b.closest(".dial").classList.toggle("open")));
 }
 async function saveSetting(key, val) {
   await api("/me/settings", { method: "PUT", body: JSON.stringify({ settings: { [key]: val } }) });

@@ -36,12 +36,25 @@ input[type=email],input[type=text],#code,#profile-name{width:100%;max-width:340p
 #deliverables-list li.book-head{display:block;border-bottom:none;padding:1.1em 0 .3em;font-family:"Fraunces",serif;font-size:1.1rem;color:var(--oxblood)}
 #deliverables-list li.book-head:first-child{padding-top:.1em}
 .soon{color:var(--ink-soft);font-size:.9rem;font-style:italic}
-.dial{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:.6em 0;border-bottom:1px dotted var(--line);flex-wrap:wrap}
+.dial{padding:.55em 0;border-bottom:1px dotted var(--line)}
 .dial:last-child{border-bottom:none}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.dial-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.dial-title{background:none;border:none;font:inherit;cursor:pointer;color:var(--ink-soft);padding:.15em 1.3em .15em 0;position:relative;text-align:left}
+.dial-title::after{content:"+";position:absolute;right:0;top:50%;transform:translateY(-50%);color:var(--oxblood);font-size:1.25rem;line-height:1}
+.dial.open .dial-title{color:var(--oxblood)}
+.dial.open .dial-title::after{content:"–"}
+.dial-desc{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s var(--ease)}
+.dial.open .dial-desc{grid-template-rows:1fr}
+.dd-inner{overflow:hidden}
+.dial-desc p{margin:.5em 0 .2em;color:var(--ink-soft);font-size:.9rem;max-width:60ch}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;flex:0 0 auto}
 .seg button{background:transparent;border:none;padding:.4em .85em;font:inherit;font-size:.85rem;cursor:pointer;color:var(--ink-soft)}
 .seg button.on{background:var(--oxblood);color:#fff}
 label{display:block;margin-bottom:.6em;color:var(--ink-soft)}
+/* keep the hidden attribute working even though .infoline sets display:flex */
+.infoline[hidden]{display:none}
+#btn-save-profile{margin-top:1.1em}
+#btn-upload{margin-top:.9em}
 
 /* five-step journey indicator */
 .steps{list-style:none;display:flex;padding:0;margin:0 0 20px}
@@ -61,4 +74,4 @@ label{display:block;margin-bottom:.6em;color:var(--ink-soft)}
 .infoline{display:flex;gap:12px;align-items:baseline;margin-top:.7em;font-size:.95rem}
 .info-label{font-weight:600;color:var(--oxblood);min-width:70px}
 .info-val{color:var(--ink)}
-@media(max-width:640px){.dial{justify-content:flex-start}.steps li{font-size:.68rem}.steps li .num{width:26px;height:26px}}
+@media(max-width:640px){.dial-row{justify-content:flex-start}.steps li{font-size:.68rem}.steps li .num{width:26px;height:26px}}
