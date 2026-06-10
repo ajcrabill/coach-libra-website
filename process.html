@@ -66,8 +66,16 @@
   .phase .you b{color:var(--oxblood);font-weight:600}
   .gate{background:linear-gradient(165deg,#faf4e9,#efe5d3);border:1px solid var(--line);border-left:3px solid var(--oxblood);border-radius:8px;padding:.85em 1em;font-size:1rem;color:var(--ink);display:flex;flex-direction:column;gap:.35em}
   .gate .q{font-family:"Fraunces",serif;font-style:italic;font-size:1.12rem;color:var(--oxblood-deep)}
-  .quiet{opacity:.85}
+  .quiet{opacity:.92}
   .quiet .no{color:var(--gold)}
+  .quiet h2{color:var(--ink-soft)}
+  /* behind-the-scenes step lists */
+  .craft-steps{margin:.7em 0 0;padding:0;list-style:none;counter-reset:cs}
+  .craft-steps li{counter-increment:cs;position:relative;padding:.32em 0 .32em 2.2em;font-size:.99rem;color:var(--ink-soft);border-bottom:1px dotted var(--line)}
+  .craft-steps li:last-child{border-bottom:none}
+  .craft-steps li b{color:var(--ink);font-weight:600}
+  .craft-steps li::before{content:counter(cs,decimal-leading-zero);position:absolute;left:0;top:.45em;font-family:"Fraunces",serif;font-size:.8rem;font-weight:600;color:var(--gold)}
+  @media (min-width:680px){.craft-steps.two{column-count:2;column-gap:34px}.craft-steps.two li{break-inside:avoid;border-bottom:none;padding-top:.18em;padding-bottom:.18em}}
 
   /* sibling pages */
   .alsohelps{margin:36px 0 0;font-size:1.06rem;color:var(--ink-soft);text-align:center;line-height:1.7}
@@ -142,6 +150,24 @@
       </div>
     </div>
 
+    <div class="phase quiet">
+      <div class="no">01<small>Behind the scenes</small></div>
+      <div>
+        <h2>Building your voice-print</h2>
+        <p class="what">While you go about your day, here's the craft happening off your plate — turning what you shared into a faithful print of your voice:</p>
+        <ol class="craft-steps">
+          <li><b>Read everything you sent</b> — transcribing any talks or voice memos, pulling the text out of documents and links.</li>
+          <li><b>Measure your fingerprint</b> — sentence rhythm, punctuation habits, vocabulary, paragraph shape, and the small signature markers that are unmistakably yours.</li>
+          <li><b>Gauge how much we have</b> — from a first feel for your voice to a strong, clear read, so we know when it's faithful.</li>
+          <li><b>Map your interpretive voice</b> — your rhetorical moves, your tone and register, the way you use imagery and emphasis.</li>
+          <li><b>Place you in good company</b> — the acclaimed writers your style most resembles, as a benchmark to aim beside.</li>
+          <li><b>Learn your “never” rules</b> — the words and moves you'd never use, so neither do we.</li>
+          <li><b>Keep your anchor passages</b> — real excerpts that capture you at your best, to write toward.</li>
+          <li><b>Train a guardian for your voice</b> — a model that can tell your writing from anyone else's, standing watch over every later edit so your voice never drifts.</li>
+        </ol>
+      </div>
+    </div>
+
     <div class="phase">
       <div class="no">02<small>Outline</small></div>
       <div>
@@ -173,11 +199,28 @@
     </div>
 
     <div class="phase quiet">
-      <div class="no">04<small>Off your plate</small></div>
+      <div class="no">04<small>Behind the scenes</small></div>
       <div>
         <h2>The deep edit — quietly, in the background</h2>
-        <p class="what">With every chapter yours, your manuscript goes through a rigorous edit and is held to the standard of the highest-rated books in your category — structure, pacing, polish, and above all fidelity to your voice. There's nothing for you to do here.</p>
-        <p class="you"><b>You:</b> nothing. Rest. The craft happens off your plate.</p>
+        <p class="what">With every chapter yours, your manuscript goes through a fifteen-pass edit, held to the standard of the highest-rated books in your category. There's nothing for you to do — but here is the craft happening off your plate:</p>
+        <ol class="craft-steps two">
+          <li><b>Developmental</b> — does the book deliver on its promise, start to finish?</li>
+          <li><b>Coherence</b> — every chapter builds on the last, with no gaps.</li>
+          <li><b>Pacing</b> — nothing drags, nothing rushes.</li>
+          <li><b>Argument &amp; evidence</b> — every claim lands and is earned.</li>
+          <li><b>Prose</b> — every sentence pulls its weight.</li>
+          <li><b>Line</b> — rhythm, clarity and flow, word by word.</li>
+          <li><b>Grammar</b> — clean and correct throughout.</li>
+          <li><b>Copy</b> — spelling, punctuation, consistency.</li>
+          <li><b>Voice fidelity</b> — still unmistakably <em>you</em>; any edit that drifts from your voice is reverted.</li>
+          <li><b>Anti-slop</b> — no clichés, no AI tells, no tics.</li>
+          <li><b>Continuity</b> — names, facts and callbacks consistent cover to cover.</li>
+          <li><b>Fact-check</b> — checkable claims trace back to what you actually said.</li>
+          <li><b>Readability</b> — pitched right for your reader.</li>
+          <li><b>Peer comparison</b> — measured against the best books in your category.</li>
+          <li><b>Holistic read</b> — read end to end, as a finished book.</li>
+        </ol>
+        <p class="you" style="margin-top:.8em"><b>You:</b> nothing. Rest. The craft happens off your plate.</p>
       </div>
     </div>
 
