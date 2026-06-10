@@ -5,7 +5,7 @@ const io = new IntersectionObserver((entries) => {
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
 // waitlist → Coach Libra box API (stored in our own DB; approvable from /admin)
-const WAITLIST_API = 'https://esbserver-m4.taild49f53.ts.net/waitlist';
+const WAITLIST_API = 'https://esbcloud.taild49f53.ts.net/waitlist';
 const form = document.getElementById('waitlist');
 const done = document.getElementById('formdone');
 const note = document.getElementById('formnote');

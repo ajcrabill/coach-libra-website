@@ -1,5 +1,5 @@
 // Coach Libra admin console — admin-only OTP sign-in + live digest + operations.
-const API = "https://esbserver-m4.taild49f53.ts.net"; // Tailscale Funnel -> box:8088
+const API = "https://esbcloud.taild49f53.ts.net"; // Tailscale Funnel -> box:8088
 const TKEY = "cl_admin_token";
 const $ = (id) => document.getElementById(id);
 const token = () => localStorage.getItem(TKEY);
