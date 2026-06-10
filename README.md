@@ -1,39 +1,24 @@
 # coachlibra.com
 
-Public marketing site for **Coach Libra** — a rockstar author coach who captures
-your real voice and turns your expertise into a finished, publish-ready
-manuscript, faster and more easily than you thought possible.
+Static site built with **Jekyll**, hosted on **GitHub Pages** — which builds it
+automatically on every push to `main`. No external build service, no settings to flip.
 
-Static single-page site. No build step. Deployed via **Cloudflare Pages**.
+## Edit once, applies everywhere
+- **Header / nav:** `_includes/header.html`
+- **Footer:** `_includes/footer.html`
+- **Shared nav + footer + background CSS:** `assets/css/base.css` (loaded last, so it's
+  the single authority for the shared chrome)
+- **Page shell** (the `<head>` + where header/footer get included): `_layouts/default.html`
 
-## Files
-- `index.html` — the landing page (self-contained: styles + JS inline)
-- `404.html` — branded not-found page
-- `favicon.svg` — quill/scales mark
-- `_headers` — security headers (Cloudflare Pages)
-- `robots.txt`
+Each page is `<page>.html` = front matter (`layout: default`, `title`, …) + its `<main>`
+content, and keeps its own styles in `assets/css/<page>.css`.
 
-## Local preview
+## Deploy
+Just `git push` to `main`. GitHub Pages rebuilds and serves it. Redirects use the native
+`jekyll-redirect-from` plugin (e.g. `/commands` → `/shortcuts`).
+
+## Local preview (optional)
 ```bash
-python3 -m http.server 4173
-# open http://localhost:4173
+bundle install
+bundle exec jekyll serve   # http://localhost:4000
 ```
-
-## Deploy (Cloudflare Pages)
-Connect this repo in the Cloudflare dashboard → Pages → Create → Connect to Git.
-- Framework preset: **None**
-- Build command: *(empty)*
-- Build output directory: **/** (root)
-Then add the custom domain `coachlibra.com` (and `www`) under the project's
-Custom domains tab.
-
-## Waitlist
-Hosted on **GitHub Pages** (static), so the form POSTs directly to **Formspree**
-(`https://formspree.io/f/xayzdydv`) via AJAX. Signups land in the Formspree
-inbox / your notification email. If the request fails, the form shows a mailto
-fallback to `hello@coachlibra.com`. No backend or build step required.
-
-## Design
-Literary-atelier aesthetic: ink on cream paper, oxblood + gold accents, Fraunces
-display / Hanken Grotesk body, grain overlay, staggered load + scroll reveals.
-Respects `prefers-reduced-motion`.

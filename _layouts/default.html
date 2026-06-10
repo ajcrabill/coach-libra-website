@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ page.title }}</title>
+{% if page.description %}<meta name="description" content="{{ page.description }}" />{% endif %}
+{% if page.noindex %}<meta name="robots" content="noindex, follow" />{% endif %}
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..600&family=Hanken+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+{% if page.pageCss %}<link rel="stylesheet" href="/assets/css/{{ page.pageCss }}.css" />{% endif %}
+<link rel="stylesheet" href="/assets/css/base.css" />
+</head>
+<body class="{{ page.bodyclass }}">
+{% include header.html %}
+{{ content }}
+{% include footer.html %}
+<script>
+  var y=document.getElementById('yr'); if(y){y.textContent=new Date().getFullYear();}
+  var nav=document.getElementById('nav'),tg=document.getElementById('navtoggle'),nl=document.getElementById('navlinks');
+  if(tg&&nl){tg.addEventListener('click',function(){nl.classList.toggle('open');});nl.addEventListener('click',function(e){if(e.target.tagName==='A'){nl.classList.remove('open');}});}
+  window.addEventListener('scroll',function(){if(nav){nav.classList.toggle('scrolled',window.scrollY>10);}},{passive:true});
+</script>
+{% if page.pageScript %}<script src="/assets/js/{{ page.pageScript }}.js"></script>{% endif %}
+</body>
+</html>

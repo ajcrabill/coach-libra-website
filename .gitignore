@@ -1,0 +1,7 @@
+_site/
+vendor/
+.bundle/
+node_modules/
+.DS_Store
+Gemfile
+Gemfile.lock

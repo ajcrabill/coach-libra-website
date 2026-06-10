@@ -1,0 +1,14 @@
+title: Coach Libra
+plugins:
+  - jekyll-redirect-from
+exclude:
+  - node_modules
+  - package.json
+  - package-lock.json
+  - .eleventy.js
+  - src
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - .gitignore
