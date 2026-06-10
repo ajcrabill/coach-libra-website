@@ -3,7 +3,7 @@ const API = "https://esbserver-m4.taild49f53.ts.net"; // Tailscale Funnel -> box
 const TKEY = "cl_token";
 const $ = (id) => document.getElementById(id);
 const token = () => localStorage.getItem(TKEY);
-const setToken = (t) => t ? localStorage.setItem(TKEY, t) : localStorage.removeItem(TKEY);
+const setToken = (t) => { t ? localStorage.setItem(TKEY, t) : localStorage.removeItem(TKEY); if (window.syncNavAuth) window.syncNavAuth(); };
 
 async function api(path, opts = {}) {
   const h = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});

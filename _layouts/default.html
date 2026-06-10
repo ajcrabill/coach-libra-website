@@ -22,6 +22,10 @@
   var nav=document.getElementById('nav'),tg=document.getElementById('navtoggle'),nl=document.getElementById('navlinks');
   if(tg&&nl){tg.addEventListener('click',function(){nl.classList.toggle('open');});nl.addEventListener('click',function(e){if(e.target.tagName==='A'){nl.classList.remove('open');}});}
   window.addEventListener('scroll',function(){if(nav){nav.classList.toggle('scrolled',window.scrollY>10);}},{passive:true});
+  // nav auth toggle: show "Sign out" when a portal token is present, and clear it on click
+  var au=document.getElementById('navauth');
+  window.syncNavAuth=function(){var s=false;try{s=!!localStorage.getItem('cl_token');}catch(_){}if(au){au.textContent=s?'Sign out':'Sign in';}};
+  if(au){au.addEventListener('click',function(e){var s=false;try{s=!!localStorage.getItem('cl_token');}catch(_){}if(s){e.preventDefault();try{localStorage.removeItem('cl_token');}catch(_){}location.href='/portal';}});window.syncNavAuth();}
 </script>
 {% if page.pageScript %}<script src="/assets/js/{{ page.pageScript }}.js"></script>{% endif %}
 </body>
