@@ -98,6 +98,7 @@ function renderTabs() {
 }
 function renderBook(pg) {
   if (!BOOKS.length) {
+    $("book-rename").hidden = true;
     const next = pg ? (pg.next_overall || "We'll be in touch soon.") : "We'll be in touch soon.";
     $("progress-body").innerHTML = `<p class="next"><b>Next:</b> ${esc(next)}</p>${VOICE_LINE}`;
     $("deliverables-list").innerHTML = `<li><span class="muted">Your downloads will appear here as your book takes shape.</span></li>`;
@@ -105,10 +106,40 @@ function renderBook(pg) {
     return;
   }
   const b = BOOKS.find(x => x.id === CURRENT) || BOOKS[0];
+  renderRename(b);
   $("progress-body").innerHTML = bookCard(b.prog, false) + VOICE_LINE;
   renderDeliverables(b);
   $("upload-help").textContent = "Add a document, PDF, or recording for " +
     (b.title ? "“" + b.title + "”" : "this book") + ".";
+}
+function renderRename(b) {
+  const el = $("book-rename"); el.hidden = false;
+  el.innerHTML =
+    `<label class="rename-label">Book title</label>` +
+    `<div class="rename-row"><input id="book-title" type="text" placeholder="Untitled — name it anytime" />` +
+    `<button id="btn-save-title" class="btn small">Save</button></div>` +
+    `<p id="title-note" class="note"></p>`;
+  $("book-title").value = b.title || "";
+  $("btn-save-title").addEventListener("click", () => saveTitle(b.id));
+  $("book-title").addEventListener("keydown", e => { if (e.key === "Enter") saveTitle(b.id); });
+}
+async function saveTitle(id) {
+  const t = $("book-title").value.trim();
+  $("btn-save-title").disabled = true;
+  try {
+    const res = await api("/me/books/" + id + "/title", { method: "PUT", body: JSON.stringify({ title: t }) });
+    if (!res.ok) { note("title-note", "Couldn't save that — try again.", false); }
+    else {
+      const d = await res.json();
+      const bk = BOOKS.find(x => x.id === id);
+      if (bk) { bk.title = d.title; bk.prog.title = d.title; }
+      renderTabs();
+      $("upload-help").textContent = "Add a document, PDF, or recording for " +
+        (d.title ? "“" + d.title + "”" : "this book") + ".";
+      note("title-note", "Saved.", true);
+    }
+  } catch (e) { note("title-note", "Something went wrong — try again.", false); }
+  $("btn-save-title").disabled = false;
 }
 const DELIV_DESC = {
   profile: "Your book profile on one page — who it's for, the promise, your unique angle, what readers feel, and how it's organized. It unlocks once every part of your profile is captured.",

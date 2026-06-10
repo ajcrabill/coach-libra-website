@@ -57,6 +57,13 @@ label{display:block;margin-bottom:.6em;color:var(--ink-soft)}
 #btn-save-profile{margin-top:1.1em}
 #btn-upload{margin-top:.9em}
 
+/* book title editor */
+.book-rename{margin-bottom:18px;padding-bottom:16px;border-bottom:1px dotted var(--line)}
+.rename-label{display:block;margin-bottom:.3em;color:var(--ink-soft);font-size:.9rem}
+.rename-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rename-row input{margin:0;flex:1 1 240px}
+.rename-row .btn{flex:0 0 auto}
+
 /* book tabs — flip between projects */
 .booktabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
 .booktab{background:#fbf6ec;border:1px solid var(--line);border-bottom-width:2px;border-radius:10px 10px 0 0;padding:.55em 1.1em;font:inherit;font-size:.95rem;color:var(--ink-soft);cursor:pointer;transition:color .2s,border-color .2s,background .2s}
