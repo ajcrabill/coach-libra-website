@@ -60,26 +60,31 @@ function fmtWhen(iso) {
          dt.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 function esc(s){ return (s||"").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function bookCard(b, showTitle) {
+  const court = b.court === "you" ? "It's your turn" : b.court === "done" ? "Done!" : "We're on it";
+  const stages = b.stages || [], cur = b.stage || 0;
+  let steps = stages.length ? `<ol class="steps">` + stages.map((label, i) => {
+    const n = i + 1, cls = n < cur ? "done" : n === cur ? "current" : "todo";
+    return `<li class="${cls}"><span class="num">${n < cur ? "✓" : n}</span><span class="lbl">${esc(label)}</span></li>`;
+  }).join("") + `</ol>` : "";
+  let last = b.last_email ? `<p class="lastmail">📩 Last email from me: <b>${esc(b.last_email.subject)}</b>` +
+    (b.last_email.at ? ` <span class="muted">· ${fmtWhen(b.last_email.at)}</span>` : "") + `</p>` : "";
+  let title = showTitle ? `<div class="book-title">${esc(b.title || "Untitled book")}</div>` : "";
+  return `<div class="bookcard">${title}${steps}` +
+    `<div class="bigstep"><span class="dot ${b.court}"></span><div><div class="stepname">${esc(b.step_label)}</div>` +
+    `<div class="muted">${court}</div></div></div>` +
+    `<p class="next"><b>Next:</b> ${esc(b.next)}</p>${last}</div>`;
+}
 async function loadProgress() {
   const d = await (await api("/me/progress")).json();
-  const court = d.court === "you" ? "It's your turn" : d.court === "done" ? "Done!" : "We're on it";
-  let vp = d.voiceprint ? `<p class="muted vp-line">Voice captured: ${d.voiceprint.pieces} piece(s)${d.voiceprint.words ? ", ~" + Math.round(d.voiceprint.words/1000) + "k words" : ""}.</p>` : "";
-  // five-step journey: which step are they on?
-  const stages = d.stages || [], cur = d.stage || 0;
-  let steps = "";
-  if (stages.length) {
-    steps = `<ol class="steps">` + stages.map((label, i) => {
-      const n = i + 1, cls = n < cur ? "done" : n === cur ? "current" : "todo";
-      return `<li class="${cls}"><span class="num">${n < cur ? "✓" : n}</span><span class="lbl">${esc(label)}</span></li>`;
-    }).join("") + `</ol>`;
+  const books = d.books || [];
+  let vp = d.voiceprint ? `<p class="muted vp-line">Voice captured: ${d.voiceprint.pieces} piece(s)${d.voiceprint.words ? ", ~" + Math.round(d.voiceprint.words / 1000) + "k words" : ""}.</p>` : "";
+  if (!books.length) {
+    $("progress-body").innerHTML = `<p class="next"><b>Next:</b> ${esc(d.next_overall || "We'll be in touch soon.")}</p>${vp}`;
+    return;
   }
-  let last = d.last_email ? `<p class="lastmail">📩 Last email from me: <b>${esc(d.last_email.subject)}</b>` +
-    (d.last_email.at ? ` <span class="muted">· ${fmtWhen(d.last_email.at)}</span>` : "") + `</p>` : "";
-  $("progress-body").innerHTML =
-    steps +
-    `<div class="bigstep"><span class="dot ${d.court}"></span><div><div class="stepname">${esc(d.step_label)}</div>
-     <div class="muted">${court}</div></div></div>
-     <p class="next"><b>Next:</b> ${esc(d.next)}</p>${last}${vp}`;
+  const multi = books.length > 1;   // label each book only when there's more than one
+  $("progress-body").innerHTML = books.map(b => bookCard(b, multi)).join("") + vp;
 }
 const DELIV_DESC = {
   profile: "Your book profile on one page — who it's for, the promise, your unique angle, what readers feel, and how it's organized. It unlocks once every part of your profile is captured.",

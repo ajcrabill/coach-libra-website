@@ -57,6 +57,10 @@ label{display:block;margin-bottom:.6em;color:var(--ink-soft)}
 #btn-save-profile{margin-top:1.1em}
 #btn-upload{margin-top:.9em}
 
+/* per-book progress cards (an author can have several books at once) */
+.bookcard + .bookcard{margin-top:24px;padding-top:22px;border-top:1px solid var(--line)}
+.book-title{font-family:"Fraunces",serif;font-size:1.18rem;color:var(--oxblood);margin-bottom:14px}
+
 /* five-step journey indicator */
 .steps{list-style:none;display:flex;padding:0;margin:0 0 20px}
 .steps li{flex:1;text-align:center;position:relative;font-size:.78rem}
