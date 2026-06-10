@@ -1,0 +1,39 @@
+/* ===== Shared, authoritative base: reset + background + nav + footer ===== *
+ * Loaded AFTER each page's own stylesheet, so these win for the shared chrome
+ * while every page keeps its own :root / type / layout. Edit the nav + footer
+ * here once and it applies everywhere. Markup: _includes/header.njk + footer.njk */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{padding-top:70px}
+body.home{padding-top:0}
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(120% 80% at 75% -10%, #fbf6ec 0%, transparent 55%),radial-gradient(120% 90% at 0% 110%, #ece0cc 0%, transparent 50%),var(--paper)}
+body::after{content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.05;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+::selection{background:var(--oxblood);color:var(--paper)}
+
+/* nav */
+header.nav{position:fixed;top:0;left:0;right:0;z-index:100;max-width:none;margin:0;display:flex;align-items:center;justify-content:space-between;padding:18px 32px;background:rgba(244,237,224,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid transparent;transition:padding .3s,box-shadow .3s,border-color .3s}
+header.nav.scrolled{padding:12px 32px;box-shadow:0 1px 0 var(--line);border-color:var(--line)}
+.brand{display:flex;align-items:center;gap:11px;font-family:"Fraunces",serif;font-weight:500;font-size:1.3rem;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.brand .mark{width:26px;height:26px;flex:0 0 auto}
+.nav-links{display:flex;align-items:center;gap:30px}
+.nav-links a{color:var(--ink);text-decoration:none;font-size:.93rem;font-weight:500;opacity:.82;transition:opacity .25s,color .25s}
+.nav-links a:hover{opacity:1;color:var(--oxblood)}
+.nav-links a.cta,.nav-links a.btn{opacity:1}
+.btn{display:inline-flex;align-items:center;gap:.5em;background:var(--oxblood);color:#fff;font-family:"Hanken Grotesk",sans-serif;font-weight:600;font-size:.92rem;padding:.6em 1.2em;border-radius:999px;text-decoration:none;border:none;cursor:pointer;transition:transform .25s,background .25s}
+.btn:hover{background:var(--oxblood-deep);color:#fff;transform:translateY(-1px)}
+.nav-toggle{display:none;background:none;border:none;cursor:pointer;color:var(--ink)}
+
+/* footer */
+footer{padding:46px 0 56px;border-top:1px solid var(--line);margin-top:30px}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+.foot .brand,.foot a.brand{font-size:1.1rem}
+.foot p{color:var(--ink-soft);font-size:.86rem}
+.foot a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--line)}
+.foot a:hover{color:var(--oxblood)}
+
+@media (max-width:680px){
+  header.nav{padding:14px 22px}
+  .nav-links{display:none;position:absolute;top:100%;right:0;left:0;flex-direction:column;align-items:flex-start;background:var(--paper);padding:22px;gap:18px;border-bottom:1px solid var(--line);box-shadow:0 20px 40px -30px rgba(0,0,0,.4)}
+  .nav-links.open{display:flex}
+  .nav-toggle{display:block}
+}
