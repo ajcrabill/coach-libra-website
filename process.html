@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>What to expect, start to finish — Coach Libra</title>
+<meta name="description" content="The whole journey from your first hello to your finished book — what happens at each step, what's asked of you, and the four moments where you're in the driver's seat." />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..600&family=Hanken+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f4ede0; --paper-2:#efe6d6; --ink:#211b14; --ink-soft:#5c5142;
+    --oxblood:#7c2d27; --oxblood-deep:#5e211d; --gold:#bd9347; --gold-soft:#d8b870;
+    --line:#d8ccb6; --max:920px; --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:"Hanken Grotesk",system-ui,sans-serif; font-weight:400; line-height:1.65;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden; position:relative;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:
+      radial-gradient(120% 80% at 75% -10%, #fbf6ec 0%, transparent 55%),
+      radial-gradient(120% 90% at 0% 110%, #ece0cc 0%, transparent 50%),
+      var(--paper);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  ::selection{background:var(--oxblood);color:var(--paper)}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 28px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:430;line-height:1.08;letter-spacing:-.01em}
+
+  /* nav */
+  header.nav{display:flex;align-items:center;justify-content:space-between;padding:24px 28px;max-width:var(--max);margin:0 auto}
+  .brand{display:flex;align-items:center;gap:11px;font-family:"Fraunces",serif;font-weight:500;font-size:1.3rem;color:var(--ink);text-decoration:none}
+  .brand .mark{width:26px;height:26px;flex:0 0 auto}
+  .back{font-size:.92rem;font-weight:500;color:var(--ink);opacity:.78;text-decoration:none;display:inline-flex;align-items:center;gap:.45em;transition:opacity .25s}
+  .back:hover{opacity:1;color:var(--oxblood)}
+
+  /* hero */
+  .head{padding:48px 0 14px}
+  .eyebrow{font-family:"Hanken Grotesk",sans-serif;font-weight:600;font-size:.72rem;letter-spacing:.32em;text-transform:uppercase;color:var(--oxblood)}
+  .head h1{font-size:clamp(2.3rem,6vw,3.6rem);margin:.3em 0 .35em}
+  .head h1 em{font-style:italic;color:var(--oxblood);font-weight:400}
+  .head p{font-size:1.18rem;color:var(--ink-soft);max-width:60ch}
+
+  .legend{display:flex;align-items:center;gap:10px;margin:26px 0 6px;font-size:.95rem;color:var(--ink-soft)}
+  .badge{display:inline-flex;align-items:center;gap:.4em;background:var(--oxblood);color:var(--paper);font-family:"Hanken Grotesk",sans-serif;font-weight:600;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;padding:.3em .7em;border-radius:999px;white-space:nowrap}
+  .badge::before{content:"◆";font-size:.7em}
+
+  /* timeline */
+  .phases{margin-top:18px;border-top:1px solid var(--line)}
+  .phase{display:grid;grid-template-columns:64px 1fr;gap:26px;padding:32px 0;border-bottom:1px solid var(--line);position:relative}
+  .phase .no{font-family:"Fraunces",serif;font-size:2rem;color:var(--oxblood);font-weight:400;line-height:1}
+  .phase .no small{display:block;font-family:"Hanken Grotesk",sans-serif;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-top:.5em;font-weight:600}
+  .phase h2{font-size:1.55rem;font-weight:480;margin-bottom:.4em}
+  .phase .what{color:var(--ink-soft);font-size:1.06rem;margin-bottom:.7em}
+  .phase .you{font-size:1rem;color:var(--ink);margin-bottom:.7em}
+  .phase .you b{color:var(--oxblood);font-weight:600}
+  .gate{background:linear-gradient(165deg,#faf4e9,#efe5d3);border:1px solid var(--line);border-left:3px solid var(--oxblood);border-radius:8px;padding:.85em 1em;font-size:1rem;color:var(--ink);display:flex;flex-direction:column;gap:.35em}
+  .gate .q{font-family:"Fraunces",serif;font-style:italic;font-size:1.12rem;color:var(--oxblood-deep)}
+  .quiet{opacity:.85}
+  .quiet .no{color:var(--gold)}
+
+  /* closing */
+  .closing{margin:46px 0 10px;background:radial-gradient(120% 140% at 80% 0%, #34211a 0%, transparent 60%),linear-gradient(160deg,#2a201a,#1c1511);color:var(--paper);border-radius:16px;padding:42px 36px;position:relative;overflow:hidden}
+  .closing::before{content:"";position:absolute;inset:16px;border:1px solid rgba(216,184,112,.3);border-radius:9px;pointer-events:none}
+  .closing h2{font-size:clamp(1.7rem,3.6vw,2.4rem);color:#f7efe0;max-width:24ch;margin-bottom:.4em}
+  .closing h2 em{font-style:italic;color:var(--gold-soft);font-weight:400}
+  .closing p{color:#cdbfa9;max-width:58ch;font-size:1.05rem}
+  .closing a.cta{display:inline-block;margin-top:1.2em;background:var(--gold);color:#211b14;font-weight:600;text-decoration:none;padding:.7em 1.4em;border-radius:999px;transition:transform .2s var(--ease)}
+  .closing a.cta:hover{transform:translateY(-2px)}
+
+  footer{padding:40px 0 56px;border-top:1px solid var(--line);margin-top:30px}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+  .foot a.brand{font-size:1.1rem}
+  .foot p{color:var(--ink-soft);font-size:.86rem}
+  .foot a{color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--line)}
+  .foot a:hover{color:var(--oxblood)}
+
+  @media (max-width:640px){
+    .phase{grid-template-columns:46px 1fr;gap:16px}
+    .phase .no{font-size:1.6rem}
+    .closing{padding:30px 22px}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="brand" href="/">
+    <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 2c3 4 3 8 0 12-3-4-3-8 0-12z" fill="#7c2d27"/>
+      <path d="M12 14c2.4-3 7-3.6 9.6-2.2C19 16 15.6 18.4 12 18c-3.6.4-7-2-9.6-6.2C5 10.4 9.6 11 12 14z" fill="#bd9347"/>
+      <line x1="12" y1="14" x2="12" y2="22" stroke="#211b14" stroke-width="1.3" stroke-linecap="round"/>
+    </svg>
+    Coach Libra
+  </a>
+  <a class="back" href="/">← coachlibra.com</a>
+</header>
+
+<main class="wrap">
+
+  <section class="head">
+    <p class="eyebrow">What to expect</p>
+    <h1>Your whole journey, <em>start to finish.</em></h1>
+    <p>Writing a book feels uncertain mostly because it's unknown. So here's the entire path — what happens at each step, the little that's asked of you, and the handful of moments where you're firmly in the driver's seat. No surprises.</p>
+    <div class="legend"><span class="badge">Your call</span> marks the moments only you decide.</div>
+  </section>
+
+  <div class="phases">
+
+    <div class="phase">
+      <div class="no">01<small>Hello</small></div>
+      <div>
+        <h2>Your invitation &amp; a warm hello</h2>
+        <p class="what">Once a place opens, Coach Libra welcomes you and invites you to tell her about the book you want to write — in your own words. No outline, no plan required. Just the spark.</p>
+        <p class="you"><b>You:</b> reply however's easiest — type a few lines, or record a voice memo and talk it through.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="no">02<small>Voice</small></div>
+      <div>
+        <h2>She learns your voice</h2>
+        <p class="what">You share a handful of things you've already written — emails, an article, a journal entry, a Google Doc, even a link to a talk you've given. Coach Libra studies them and builds a true print of how <em>you</em> sound: your rhythm, your phrases, what you'd never say.</p>
+        <p class="you"><b>You:</b> send whatever existing writing is easy to find. When you've shared enough, just say <em>“that's all.”</em></p>
+        <div class="gate"><span class="badge">Your call</span><span class="q">“Does this sound like you?”</span><span>She reflects your voice back to you. You confirm it's right — or tell her what to adjust — before anything is written.</span></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="no">03<small>Outline</small></div>
+      <div>
+        <h2>You shape your outline together</h2>
+        <p class="what">A few good questions — who this is for, why now, what a reader should feel — and your idea becomes a clear, confident outline, benchmarked against the best books in your field.</p>
+        <p class="you"><b>You:</b> answer the questions however you like (a voice memo is perfect). One thing at a time, at your pace.</p>
+        <div class="gate"><span class="badge">Your call</span><span class="q">“Does this outline fit?”</span><span>You confirm the shape of your book, or change anything — add a chapter, drop one, reorder — until it's right.</span></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="no">04<small>First chapter</small></div>
+      <div>
+        <h2>Your first chapter — a voice check</h2>
+        <p class="what">Coach Libra writes your opening chapter in your voice as a calibration: a chance to make sure the tone and direction feel exactly right before you go further.</p>
+        <p class="you"><b>You:</b> read it and trust your gut.</p>
+        <div class="gate"><span class="badge">Your call</span><span class="q">“Does the voice &amp; direction feel right?”</span><span>You confirm this is the book you mean — or steer it — and that sets the tone for everything after.</span></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="no">05<small>Co-write</small></div>
+      <div>
+        <h2>You co-write the rest, chapter by chapter</h2>
+        <p class="what">This is the heart of it. For each chapter, Coach Libra asks you a few warm questions; you answer with your real stories and examples — talking into a voice memo if that's easiest — and she writes <em>that</em> chapter from your own words. The part that has stopped you for years, handled — but the substance is genuinely yours.</p>
+        <p class="you"><b>You:</b> just talk through each chapter. Your stories, your phrasing, one chapter at a time.</p>
+        <div class="gate"><span class="badge">Your call · every chapter</span><span class="q">“Sound like you? Anything to add?”</span><span>You lock each chapter when it sounds like you, or add more and she folds it in. Nothing moves on without your yes.</span></div>
+      </div>
+    </div>
+
+    <div class="phase quiet">
+      <div class="no">06<small>Off your plate</small></div>
+      <div>
+        <h2>The deep edit — quietly, in the background</h2>
+        <p class="what">With every chapter yours, your manuscript goes through a rigorous edit and is held to the standard of the highest-rated books in your category — structure, pacing, polish, and above all fidelity to your voice. There's nothing for you to do here.</p>
+        <p class="you"><b>You:</b> nothing. Rest. The craft happens off your plate.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="no">07<small>Done</small></div>
+      <div>
+        <h2>Your finished book</h2>
+        <p class="what">After a final review, your completed manuscript arrives as a polished Word document — every page in your voice. The book you've always had in you, finally written.</p>
+        <p class="you"><b>You:</b> celebrate. You wrote a book.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <section class="closing">
+    <h2>Easy for you. <em>Unmistakably yours.</em></h2>
+    <p>The whole way through, you steer the moments that matter — your voice, your outline, your first chapter, every chapter — and Coach Libra carries the rest. When you're ready to begin, leave your name and we'll reach out when a place opens.</p>
+    <a class="cta" href="/#begin">Request an invitation</a>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <a class="brand" href="/">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 2c3 4 3 8 0 12-3-4-3-8 0-12z" fill="#7c2d27"/>
+        <path d="M12 14c2.4-3 7-3.6 9.6-2.2C19 16 15.6 18.4 12 18c-3.6.4-7-2-9.6-6.2C5 10.4 9.6 11 12 14z" fill="#bd9347"/>
+      </svg>
+      Coach Libra
+    </a>
+    <p>© <span id="yr"></span> Coach Libra · <a href="mailto:hello@coachlibra.com">hello@coachlibra.com</a></p>
+  </div>
+</footer>
+<script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
+</body>
+</html>
