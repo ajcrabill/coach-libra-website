@@ -1,5 +1,5 @@
 // Coach Libra author portal — email-OTP sign-in + dashboard. Talks to the box API.
-const API = "https://api.coachlibra.com";
+const API = "https://esbserver-m4.taild49f53.ts.net"; // Tailscale Funnel -> box:8088 (invisible to users)
 const TKEY = "cl_token";
 const $ = (id) => document.getElementById(id);
 const token = () => localStorage.getItem(TKEY);
