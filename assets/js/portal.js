@@ -81,6 +81,13 @@ async function loadProgress() {
      <div class="muted">${court}</div></div></div>
      <p class="next"><b>Next:</b> ${esc(d.next)}</p>${last}${vp}`;
 }
+const DELIV_DESC = {
+  profile: "Your book profile on one page — who it's for, the promise, your unique angle, what readers feel, and how it's organized. It unlocks once every part of your profile is captured.",
+  bio: "A polished one-page About the Author, written in your voice from the facts you shared.",
+  voiceprint: "Your Author Voice Print — a plain-language read on how you sound: your tone, how you make a point, your imagery, and the writers your style resembles. It's the voice your book is written from.",
+  chapter1: "Your first chapter, formatted and ready to read — the first real taste of your book in your voice.",
+  manuscript: "Your complete, finished book — every chapter, edited and assembled, ready to share.",
+};
 async function loadDeliverables() {
   const d = await (await api("/me/deliverables")).json();
   const books = d.books || [];
@@ -92,13 +99,17 @@ async function loadDeliverables() {
   $("deliverables-list").innerHTML = books.map(bk =>
     (multi ? `<li class="book-head">${esc(bk.title)}</li>` : "") +
     bk.items.map(it =>
-      `<li><span>${esc(it.label)}</span>` +
+      `<li class="deliv"><div class="deliv-row">` +
+      `<button class="deliv-title" data-toggle>${esc(it.label)}</button>` +
       (it.available
         ? `<button class="btn small" data-book="${bk.id}" data-kind="${it.kind}">Download</button>`
-        : `<span class="soon">not ready yet</span>`) + `</li>`).join("")
+        : `<span class="soon">not ready yet</span>`) +
+      `</div><div class="deliv-desc"><div class="dd-inner"><p>${esc(DELIV_DESC[it.kind] || "")}</p></div></div></li>`).join("")
   ).join("");
   $("deliverables-list").querySelectorAll("button[data-kind]").forEach(b =>
     b.addEventListener("click", () => downloadKind(b.dataset.book, b.dataset.kind, b)));
+  $("deliverables-list").querySelectorAll("button[data-toggle]").forEach(b =>
+    b.addEventListener("click", () => b.closest(".deliv").classList.toggle("open")));
 }
 async function downloadKind(bookId, kind, btn) {
   btn.disabled = true; const old = btn.textContent; btn.textContent = "Preparing…";
