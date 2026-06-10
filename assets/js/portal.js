@@ -83,18 +83,27 @@ async function loadProgress() {
 }
 async function loadDeliverables() {
   const d = await (await api("/me/deliverables")).json();
-  $("deliverables-list").innerHTML = d.items.map(it =>
-    `<li><span>${it.label}</span>` +
-    (it.available
-      ? `<button class="btn small" data-kind="${it.kind}">Download</button>`
-      : `<span class="soon">not ready yet</span>`) + `</li>`).join("");
+  const books = d.books || [];
+  if (!books.length) {
+    $("deliverables-list").innerHTML = `<li><span class="muted">Your downloads will appear here as your book takes shape.</span></li>`;
+    return;
+  }
+  const multi = books.length > 1;   // only label books when there's more than one
+  $("deliverables-list").innerHTML = books.map(bk =>
+    (multi ? `<li class="book-head">${esc(bk.title)}</li>` : "") +
+    bk.items.map(it =>
+      `<li><span>${esc(it.label)}</span>` +
+      (it.available
+        ? `<button class="btn small" data-book="${bk.id}" data-kind="${it.kind}">Download</button>`
+        : `<span class="soon">not ready yet</span>`) + `</li>`).join("")
+  ).join("");
   $("deliverables-list").querySelectorAll("button[data-kind]").forEach(b =>
-    b.addEventListener("click", () => downloadKind(b.dataset.kind, b)));
+    b.addEventListener("click", () => downloadKind(b.dataset.book, b.dataset.kind, b)));
 }
-async function downloadKind(kind, btn) {
+async function downloadKind(bookId, kind, btn) {
   btn.disabled = true; const old = btn.textContent; btn.textContent = "Preparing…";
   try {
-    const res = await api("/me/deliverables/" + kind + "/download");
+    const res = await api("/me/deliverables/" + bookId + "/" + kind + "/download");
     if (!res.ok) throw new Error();
     const blob = await res.blob(); const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = kind + ".pdf"; a.click();
