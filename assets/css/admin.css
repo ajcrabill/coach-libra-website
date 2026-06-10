@@ -1,0 +1,31 @@
+@import url("/assets/css/portal.css");
+
+/* admin console — built on top of the portal styles */
+.portal{max-width:1000px}
+:root{--max:1000px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:.6em}
+.panel-head h2{margin-bottom:0}
+
+.tally{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.pill{background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:.25em .8em;font-size:.85rem;color:var(--ink-soft)}
+.pill.you{background:var(--oxblood);color:#fff;border-color:var(--oxblood);font-weight:600}
+
+.tablewrap{overflow-x:auto}
+table.grid{width:100%;border-collapse:collapse;font-size:.92rem}
+table.grid th{background:var(--oxblood);color:#fff;text-align:left;padding:8px 11px;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;font-weight:600;white-space:nowrap}
+table.grid th.c,table.grid td.c{text-align:center}
+table.grid td{padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink)}
+table.grid tbody tr:nth-child(even){background:#f6efe0}
+table.grid tbody tr.you{background:#f3e2c2}
+table.grid tbody tr.you td b{color:var(--oxblood)}
+table.grid .status{color:var(--ink-soft);font-size:.82rem}
+.soft{color:var(--ink-soft)}
+
+.needs{list-style:none;padding:0;margin:0}
+.needs li{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:.6em 0;border-bottom:1px dotted var(--line)}
+.needs li:last-child{border-bottom:none}
+
+.form-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.form-row input{margin:0;flex:1 1 200px;max-width:none}
+.form-row .btn{flex:0 0 auto}
+@media(max-width:640px){.form-row .btn{flex:1 1 100%}}

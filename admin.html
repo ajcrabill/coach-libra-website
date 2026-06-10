@@ -1,0 +1,81 @@
+---
+layout: default
+title: "Admin — Coach Libra"
+noindex: true
+pageCss: admin
+pageScript: admin
+bodyclass: portal-page
+---
+<main class="wrap portal">
+
+  <section id="admin-signin" hidden>
+    <div class="card">
+      <h1>Admin</h1>
+      <p class="muted">Sign in with your admin email — I'll send you a 6-digit code.</p>
+      <div id="astep-email">
+        <input id="aemail" type="email" autocomplete="email" placeholder="you@example.com" />
+        <div><button id="abtn-send" class="btn">Send my code</button></div>
+      </div>
+      <div id="astep-code" hidden>
+        <p class="muted">Enter the code I emailed to <b id="aemail-echo"></b>.</p>
+        <input id="acode" inputmode="numeric" maxlength="6" placeholder="••••••" />
+        <div><button id="abtn-verify" class="btn">Sign in</button>
+        &nbsp; <button id="abtn-back" class="link">use a different email</button></div>
+      </div>
+      <p id="asignin-note" class="note"></p>
+    </div>
+  </section>
+
+  <section id="admin-dashboard" hidden>
+    <div class="dash-head">
+      <h1>Admin console</h1>
+      <button id="abtn-signout" class="link">sign out</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>All projects</h2>
+        <button id="abtn-refresh" class="btn small">Refresh</button></div>
+      <div id="tally" class="tally"></div>
+      <div id="overview" class="tablewrap"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Needs your attention</h2>
+      <div id="needs"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Approve a new author</h2>
+      <p class="muted">Creates (or reactivates) the author and sends their welcome.</p>
+      <div class="form-row">
+        <input id="ap-email" type="email" placeholder="author email" />
+        <input id="ap-name" type="text" placeholder="Full name (first &amp; last)" />
+        <button id="ap-btn" class="btn">Approve &amp; welcome</button>
+      </div>
+      <p id="ap-note" class="note"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Start a new book</h2>
+      <p class="muted">For an author who already has a book with you. They'll get a warm note inviting them to describe the next one — their reply starts a fresh project.</p>
+      <div class="form-row">
+        <input id="nb-email" type="email" placeholder="author email" />
+        <input id="nb-note" type="text" placeholder="optional note (title or topic)" />
+        <button id="nb-btn" class="btn">Open next book</button>
+      </div>
+      <p id="nb-msg" class="note"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Link an alias email</h2>
+      <p class="muted">Point a second email address at an existing author.</p>
+      <div class="form-row">
+        <input id="al-primary" type="email" placeholder="primary email" />
+        <input id="al-alias" type="email" placeholder="alias email" />
+        <button id="al-btn" class="btn">Link alias</button>
+      </div>
+      <p id="al-note" class="note"></p>
+    </div>
+  </section>
+
+</main>
