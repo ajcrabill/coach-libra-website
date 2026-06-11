@@ -65,6 +65,14 @@ label{display:block;margin-bottom:.6em;color:var(--ink-soft)}
 .link-row input{margin:0;flex:1 1 260px}
 .link-row .btn{flex:0 0 auto}
 
+/* finish-line progress */
+.finish{margin:4px 0 16px}
+.finish-top{display:flex;justify-content:space-between;align-items:baseline;font-size:.85rem;color:var(--ink-soft);margin-bottom:5px}
+.finish-pct{font-family:"Fraunces",serif;font-size:1.1rem;color:var(--oxblood);font-weight:600}
+.finish-bar{display:block;height:10px;background:var(--paper-2);border-radius:6px;overflow:hidden}
+.finish-fill{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--oxblood));border-radius:6px;transition:width .5s var(--ease)}
+.finish-meta{font-size:.82rem;color:var(--ink-soft);margin-top:5px}
+
 /* book title editor */
 .book-rename{margin-bottom:18px;padding-bottom:16px;border-bottom:1px dotted var(--line)}
 .rename-label{display:block;margin-bottom:.3em;color:var(--ink-soft);font-size:.9rem}

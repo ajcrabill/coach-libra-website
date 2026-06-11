@@ -71,8 +71,18 @@ function bookCard(b, showTitle) {
   let last = b.last_email ? `<p class="lastmail">📩 Last email from me: <b>${esc(b.last_email.subject)}</b>` +
     (b.last_email.at ? ` <span class="muted">· ${fmtWhen(b.last_email.at)}</span>` : "") + `</p>` : "";
   let invested = (b.invested && b.court === "you") ? `<p class="invested">✓ You've already ${esc(b.invested)} — pick up right where you left off.</p>` : "";
+  let finish = "";
+  if (b.finish && b.finish.percent != null) {
+    const f = b.finish;
+    let meta = [];
+    if (f.chapters_total) meta.push(`${f.chapters_done} of ${f.chapters_total} chapters`);
+    if (f.projected) { const d = new Date(f.projected + "T12:00:00"); if (!isNaN(d)) meta.push("on track for ~" + d.toLocaleDateString(undefined, { month: "short", day: "numeric" })); }
+    finish = `<div class="finish"><div class="finish-top"><span>Your book</span><span class="finish-pct">${f.percent}%</span></div>` +
+      `<span class="finish-bar"><span class="finish-fill" style="width:${f.percent}%"></span></span>` +
+      (meta.length ? `<div class="finish-meta">${esc(meta.join(" · "))}</div>` : "") + `</div>`;
+  }
   let title = showTitle ? `<div class="book-title">${esc(b.title || "Untitled book")}</div>` : "";
-  return `<div class="bookcard">${title}${steps}` +
+  return `<div class="bookcard">${title}${finish}${steps}` +
     `<div class="bigstep"><span class="dot ${b.court}"></span><div><div class="stepname">${esc(b.step_label)}</div>` +
     `<div class="muted">${court}</div></div></div>` +
     `<p class="next"><b>Next:</b> ${esc(b.next)}</p>${invested}${last}</div>`;
@@ -186,6 +196,8 @@ async function loadSettings() {
      "How deep we go. Simple keeps things clear and plain; in-depth digs into nuance and detail."],
     ["cadence", "Pace", { as_completed: "As I reply", daily: "One a day" },
      "How often we move forward — as soon as you reply, or one calm step each day."],
+    ["prompt_time", "When to ask", { any: "Anytime", morning: "Mornings", evening: "Evenings" },
+     "If you've chosen one step a day, roughly when that question arrives — your morning or your evening."],
     ["handholding", "How much help", { less: "Less", normal: "Normal", more: "More" },
      "How much I guide you along the way — a lighter touch, or more reassurance and direction at each step."],
   ];
