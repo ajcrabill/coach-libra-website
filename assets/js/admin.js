@@ -116,7 +116,27 @@ function renderOverview() {
     b.addEventListener("click", () => doDeliver(b.dataset.deliver, b)));
 }
 
-async function loadAll() { await Promise.all([loadOverview(), loadWaitlist()]); }
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist()]); }
+
+async function loadFunnel() {
+  const d = await (await api("/admin/funnel")).json();
+  const a = d.activation || {};
+  let html = `<div class="funnel-act"><span class="big">${a.rate || 0}%</span> activated ` +
+    `<span class="soft">(${a.started || 0} of ${a.welcomed || 0} welcomed started · ${a.never_started || 0} never started)</span></div>`;
+  const stages = d.stages || [];
+  if (stages.length) {
+    const max = Math.max.apply(null, stages.map(s => s.count).concat([1]));
+    html += `<div class="funnel-stages">` + stages.map(s =>
+      `<div class="fstage"><span class="flabel">${esc(s.label)}</span>` +
+      `<span class="fbar"><span class="fbar-fill" style="width:${Math.round(100 * s.count / max)}%"></span></span>` +
+      `<span class="fcount">${s.count}</span></div>`).join("") + `</div>`;
+  }
+  const idle = d.waiting_idle || {};
+  const idleStr = Object.keys(idle).length ? Object.entries(idle).map(([k, v]) => `${esc(k)}: ${v}`).join(" · ") : "none waiting";
+  html += `<p class="soft funnel-idle">Waiting on author — ${idleStr}` +
+    (d.stalled_over_7d ? ` · <b style="color:var(--oxblood)">${d.stalled_over_7d} stalled &gt;7d</b>` : "") + `</p>`;
+  $("funnel").innerHTML = html;
+}
 
 async function loadWaitlist() {
   const d = await (await api("/admin/waitlist")).json();

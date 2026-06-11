@@ -6,6 +6,17 @@
 .panel-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:.6em}
 .panel-head h2{margin-bottom:0}
 
+/* funnel dashboard */
+.funnel-act{font-size:1.05rem;color:var(--ink);margin-bottom:14px}
+.funnel-act .big{font-family:"Fraunces",serif;font-size:1.9rem;color:var(--oxblood);font-weight:600;margin-right:.2em}
+.funnel-stages{display:flex;flex-direction:column;gap:7px;margin:10px 0 12px}
+.fstage{display:flex;align-items:center;gap:10px;font-size:.9rem}
+.fstage .flabel{flex:0 0 130px;color:var(--ink-soft)}
+.fstage .fbar{flex:1;height:14px;background:var(--paper-2);border-radius:7px;overflow:hidden}
+.fstage .fbar-fill{display:block;height:100%;background:var(--oxblood);border-radius:7px}
+.fstage .fcount{flex:0 0 28px;text-align:right;font-weight:600;color:var(--ink)}
+.funnel-idle{font-size:.9rem;margin-top:6px}
+
 .tally{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
 .pill{background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:.25em .8em;font-size:.85rem;color:var(--ink-soft)}
 .pill.you{background:var(--oxblood);color:#fff;border-color:var(--oxblood);font-weight:600}
