@@ -70,11 +70,12 @@ function bookCard(b, showTitle) {
   }).join("") + `</ol>` : "";
   let last = b.last_email ? `<p class="lastmail">📩 Last email from me: <b>${esc(b.last_email.subject)}</b>` +
     (b.last_email.at ? ` <span class="muted">· ${fmtWhen(b.last_email.at)}</span>` : "") + `</p>` : "";
+  let invested = (b.invested && b.court === "you") ? `<p class="invested">✓ You've already ${esc(b.invested)} — pick up right where you left off.</p>` : "";
   let title = showTitle ? `<div class="book-title">${esc(b.title || "Untitled book")}</div>` : "";
   return `<div class="bookcard">${title}${steps}` +
     `<div class="bigstep"><span class="dot ${b.court}"></span><div><div class="stepname">${esc(b.step_label)}</div>` +
     `<div class="muted">${court}</div></div></div>` +
-    `<p class="next"><b>Next:</b> ${esc(b.next)}</p>${last}</div>`;
+    `<p class="next"><b>Next:</b> ${esc(b.next)}</p>${invested}${last}</div>`;
 }
 async function loadBooks() {
   const [pg, dl] = await Promise.all([
