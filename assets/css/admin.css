@@ -36,6 +36,8 @@ table.grid tbody tr.you{background:#f3e2c2}
 table.grid tbody tr.you td b{color:var(--oxblood)}
 table.grid .status{color:var(--ink-soft);font-size:.82rem}
 .soft{color:var(--ink-soft)}
+/* Long silence from the author (≥3 days) — flag it so stalls jump out. */
+table.grid td.stale{color:var(--oxblood);font-weight:600}
 
 .needs{list-style:none;padding:0;margin:0}
 .needs li{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:.6em 0;border-bottom:1px dotted var(--line)}

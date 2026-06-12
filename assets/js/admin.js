@@ -55,6 +55,7 @@ function ovValue(r, key) {
   if (key === "stage") return (r.stage + " " + r.status || "").toLowerCase();
   if (key === "court") return (r.court || "").toLowerCase();
   if (key === "voice") return (r.voice || "").toLowerCase();
+  if (key === "since") return r.since_hours == null ? Infinity : r.since_hours;  // hours, numeric
   return (r.inputs && r.inputs[key]) || 0;     // input-method counts (numeric)
 }
 function th(key, label, center) {
@@ -85,16 +86,19 @@ function renderOverview() {
   }
   const head = th("author", "Author") + th("title", "Book") + th("stage", "Stage") +
     th("voice", "Voice-print") + methods.map(mth => th(mth, SHORT[mth] || mth, true)).join("") +
-    th("court", "Court");
+    th("since", "Last from author") + th("court", "Court");
   const body = rows.map(r => {
     const you = r.court_key === "YOU";
     const cells = methods.map(mth => `<td class="c">${r.inputs && r.inputs[mth] ? r.inputs[mth] : "·"}</td>`).join("");
+    // Flag a long silence from the author (≥3 days) so stalls jump out.
+    const stale = r.since_hours != null && r.since_hours >= 72;
+    const sinceCell = `<td class="c soft${stale ? " stale" : ""}" title="Time since the author last emailed or sent a submission">${esc(r.since_author || "—")}</td>`;
     return `<tr class="${you ? "you" : ""}">` +
       `<td>${esc(r.author)}</td><td>${esc(r.title)}</td>` +
       `<td>${esc(r.stage)} <span class="status">(${esc(r.status)})</span></td>` +
-      `<td class="soft">${esc(r.voice)}</td>${cells}` +
+      `<td class="soft">${esc(r.voice)}</td>${cells}${sinceCell}` +
       `<td>${you ? "<b>" + esc(r.court) + " ◀</b>" : esc(r.court)}</td></tr>`;
-  }).join("") || `<tr><td colspan="${5 + methods.length}" class="soft">${q ? "No matches." : "No active projects."}</td></tr>`;
+  }).join("") || `<tr><td colspan="${6 + methods.length}" class="soft">${q ? "No matches." : "No active projects."}</td></tr>`;
   $("overview").innerHTML = `<table class="grid"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
   $("overview").querySelectorAll("th[data-sort]").forEach(h =>
     h.addEventListener("click", () => {
