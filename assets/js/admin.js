@@ -162,15 +162,15 @@ async function loadEscalations() {
     const draft = () => card.querySelector(".held-draft");
     const instr = () => card.querySelector(".held-instr");
     card.querySelector('[data-act="draft"]').addEventListener("click", async (ev) => {
-      const b = ev.target; if (!instr().value.trim()) { instr().focus(); return; }
+      const b = ev.target;   // instructions optional — Draft reads the convo on its own
       b.disabled = true; b.textContent = "Drafting…";
       try {
         const res = await api(`/admin/escalations/${id}/draft`, { method: "POST",
-          body: JSON.stringify({ instructions: instr().value }) });
+          body: JSON.stringify({ instructions: instr().value || "" }) });
         const r = await res.json().catch(() => ({}));
         if (res.ok && r.draft) draft().value = r.draft;
-        else alert(r.detail || "Draft failed.");
-      } catch (e) { alert("Something went wrong."); }
+        else alert(r.detail || "Draft failed — try again.");
+      } catch (e) { alert("Something went wrong — try again."); }
       b.disabled = false; b.textContent = "Draft";
     });
     card.querySelector('[data-act="reply"]').addEventListener("click", async (ev) => {
