@@ -44,7 +44,7 @@ async function verify() {
 
 // ---- dashboard ----
 let BOOKS = [], CURRENT = null, VOICE_LINE = "";   // merged book list + selected book id
-async function loadDashboard() { await Promise.all([loadMe(), loadBooks(), loadSettings()]); }
+async function loadDashboard() { await Promise.all([loadMe(), loadBooks(), loadSettings(), loadSent()]); }
 async function loadMe() {
   const d = await (await api("/me")).json();
   $("me-name").textContent = (d.name||"").split(" ")[0] || "there";
@@ -184,6 +184,31 @@ async function downloadKind(bookId, kind, btn) {
     URL.revokeObjectURL(url);
   } catch (e) { alert("That file isn't ready yet."); }
   btn.disabled = false; btn.textContent = old;
+}
+// ---- what you've sent me ----
+function sentPanel() {
+  // portal.html has no slot for this yet — build the panel once, after the upload panel.
+  let panel = $("sent-panel");
+  if (panel) return panel;
+  panel = document.createElement("div");
+  panel.className = "panel"; panel.id = "sent-panel";
+  panel.innerHTML = `<h2>What you've sent me</h2><ul id="sent-list"></ul>`;
+  const uploads = $("upload-note") ? $("upload-note").closest(".panel") : null;
+  if (uploads) uploads.insertAdjacentElement("afterend", panel);
+  else $("view-dashboard").appendChild(panel);
+  return panel;
+}
+async function loadSent() {
+  const d = await (await api("/me/samples")).json();
+  const items = d.items || [];
+  sentPanel();
+  $("sent-list").innerHTML = items.length ? items.map(it => {
+    const tail = it.status === "readable"
+      ? (it.words ? `${it.words.toLocaleString()} words` : "received")
+      : it.status === "pending" ? "still reading it" : "couldn't open it";
+    return `<li class="sent-item"><b>${esc(it.label || "untitled")}</b>` +
+      `<span class="muted"> · ${esc(it.channel || "")} · ${esc(tail)}</span></li>`;
+  }).join("") : `<li><span class="muted">Nothing yet — anything you upload, link, or email me will be listed here.</span></li>`;
 }
 async function loadSettings() {
   const d = await (await api("/me/settings")).json();
