@@ -136,7 +136,63 @@ function renderOverview() {
     b.addEventListener("click", () => doDeliver(b.dataset.deliver, b)));
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel()]); }
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations()]); }
+
+// ---- Sentinel: escalations awaiting AJ's reply ----
+async function loadEscalations() {
+  let d;
+  try { d = await (await api("/admin/escalations")).json(); }
+  catch (e) { return; }
+  const escs = d.escalations || [];
+  const fmtAt = (iso) => { const t = new Date(iso); return isNaN(t) ? "" : t.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + ", " + t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); };
+  $("sentinel-escalations").innerHTML = escs.length ? escs.map(x =>
+    `<div class="held" data-id="${x.id}">` +
+    `<div class="held-head"><b>${esc(x.author)}</b> · ${esc(x.book)} <span class="soft">${esc(fmtAt(x.at))}</span></div>` +
+    `<div class="soft held-why">Flagged: ${esc(x.reason)}</div>` +
+    `<div class="esc-detail soft">${esc(x.detail)}</div>` +
+    `<textarea class="held-draft" rows="6" placeholder="Type your reply to ${esc(x.author_email)} — or use Draft to have Coach Libra start it."></textarea>` +
+    `<div class="held-actions">` +
+    `<input class="held-instr" placeholder="Draft instructions — e.g. 'thank her for the 40k words, ask her to send the manuscript'" />` +
+    `<button class="btn small" data-act="draft">Draft</button>` +
+    `<button class="btn small" data-act="reply">Send reply</button>` +
+    `<button class="link danger" data-act="dismiss">Dismiss</button></div></div>`).join("")
+    : `<p class="soft">Nothing awaiting your reply. 🎉</p>`;
+  $("sentinel-escalations").querySelectorAll(".held").forEach(card => {
+    const id = card.dataset.id;
+    const draft = () => card.querySelector(".held-draft");
+    const instr = () => card.querySelector(".held-instr");
+    card.querySelector('[data-act="draft"]').addEventListener("click", async (ev) => {
+      const b = ev.target; if (!instr().value.trim()) { instr().focus(); return; }
+      b.disabled = true; b.textContent = "Drafting…";
+      try {
+        const res = await api(`/admin/escalations/${id}/draft`, { method: "POST",
+          body: JSON.stringify({ instructions: instr().value }) });
+        const r = await res.json().catch(() => ({}));
+        if (res.ok && r.draft) draft().value = r.draft;
+        else alert(r.detail || "Draft failed.");
+      } catch (e) { alert("Something went wrong."); }
+      b.disabled = false; b.textContent = "Draft";
+    });
+    card.querySelector('[data-act="reply"]').addEventListener("click", async (ev) => {
+      if (!draft().value.trim()) { draft().focus(); return; }
+      if (!confirm("Send this reply to the author now?")) return;
+      ev.target.disabled = true;
+      try {
+        const res = await api(`/admin/escalations/${id}/reply`, { method: "POST",
+          body: JSON.stringify({ draft: draft().value }) });
+        if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.detail || "Couldn't send."); ev.target.disabled = false; return; }
+        await loadEscalations();
+      } catch (e) { ev.target.disabled = false; }
+    });
+    card.querySelector('[data-act="dismiss"]').addEventListener("click", async () => {
+      if (!confirm("Dismiss without replying (you handled it yourself)?")) return;
+      try {
+        const res = await api(`/admin/escalations/${id}/dismiss`, { method: "POST" });
+        if (res.ok) await loadEscalations(); else alert("Couldn't dismiss.");
+      } catch (e) { alert("Something went wrong."); }
+    });
+  });
+}
 
 // ---- Sentinel (watchdog): held emails + alerts ----
 async function loadSentinel() {
