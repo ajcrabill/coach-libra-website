@@ -222,7 +222,7 @@ async function loadSentinel() {
     (c.warn ? `<span class="pill">🟡 ${c.warn}</span>` : "") +
     (c.auto_fixed ? `<span class="pill">${c.auto_fixed} auto-fixed</span>` : "") +
     (c.good_catch || c.false_alarm ? `<span class="pill" title="alerts you've labeled">✓ ${c.good_catch || 0} good · ✗ ${c.false_alarm || 0} false</span>` : "") +
-    (c.unlabeled ? `<span class="pill">${c.unlabeled} to review</span>` : "");
+    (c.actionable ? `<span class="pill you">${c.actionable} to review</span>` : "");
   const held = d.held || [];
   $("sentinel-held").innerHTML = held.length ? held.map(h =>
     `<div class="held" data-id="${h.id}">` +
@@ -276,27 +276,42 @@ async function loadSentinel() {
       } catch (e) { alert("Something went wrong."); }
     });
   });
-  const feed = d.feed || [];
-  $("sentinel-feed").innerHTML = feed.length ? `<ul class="needs feed-list">` + feed.map(f => {
-    const dot = f.severity === "critical" ? "🔴" : f.severity === "warn" ? "🟡" : "⚪";
-    const fixed = f.auto_fixed ? ` <span class="soft">[auto-fixed]</span>` : "";
-    const label = f.feedback === "good_catch" ? `<span class="fb-label good">✓ good catch</span>`
-      : f.feedback === "false_alarm" ? `<span class="fb-label bad">✗ false alarm</span>`
-      : `<span class="fb-actions"><button class="link" data-fb="good_catch" data-id="${f.id}">✓ good catch</button> · <button class="link" data-fb="false_alarm" data-id="${f.id}">✗ false alarm</button></span>`;
-    return `<li class="feed-row"><span>${dot} ${esc(f.summary || f.category || "")}${fixed}</span>${label}</li>`;
-  }).join("") + `</ul>` : `<p class="soft">No recent alerts.</p>`;
-  $("sentinel-feed").querySelectorAll("button[data-fb]").forEach(b =>
-    b.addEventListener("click", async () => {
-      b.disabled = true;
-      try {
-        const res = await api(`/admin/sentinel/alerts/${b.dataset.id}/feedback`, { method: "POST",
-          body: JSON.stringify({ verdict: b.dataset.fb }) });
-        const r = await res.json().catch(() => ({}));
-        if (!res.ok) { alert(r.detail || "Couldn't record that."); b.disabled = false; return; }
-        if (r.learned) alert("Proposed a rule from this catch:\n\n“" + r.learned + "”\n\nIt's waiting for your approval under “Learned rules” — edit it, approve it, or decline it. Libra won't apply it until you approve.");
-        await Promise.all([loadSentinel(), loadRules()]);
-      } catch (e) { b.disabled = false; }
-    }));
+  const allFeed = d.feed || [];
+  const open = allFeed.filter(f => !f.handled);
+  const handled = allFeed.filter(f => f.handled);
+  const renderFeed = (showHandled) => {
+    const list = showHandled ? allFeed : open;
+    const rows = list.length ? `<ul class="needs feed-list">` + list.map(f => {
+      const dot = f.severity === "critical" ? "🔴" : f.severity === "warn" ? "🟡" : "⚪";
+      const fixed = f.auto_fixed ? ` <span class="soft">[auto-fixed]</span>` : "";
+      const label = f.feedback === "good_catch" ? `<span class="fb-label good">✓ good catch</span>`
+        : f.feedback === "false_alarm" ? `<span class="fb-label bad">✗ false alarm</span>`
+        : f.auto_fixed ? `<span class="soft fb-label">handled</span>`
+        : `<span class="fb-actions"><button class="link" data-fb="good_catch" data-id="${f.id}">✓ good catch</button> · <button class="link" data-fb="false_alarm" data-id="${f.id}">✗ false alarm</button></span>`;
+      return `<li class="feed-row"><span>${dot} ${esc(f.summary || f.category || "")}${fixed}</span>${label}</li>`;
+    }).join("") + `</ul>` : `<p class="soft">Nothing needs your review. 🎉</p>`;
+    const toggle = handled.length
+      ? `<button class="link" id="feed-toggle">${showHandled ? "hide handled" : `show ${handled.length} handled`}</button>` : "";
+    $("sentinel-feed").innerHTML = rows + toggle;
+    const t = $("feed-toggle");
+    if (t) t.addEventListener("click", () => { renderFeed(!showHandled); wireFeedButtons(); });
+  };
+  function wireFeedButtons() {
+    $("sentinel-feed").querySelectorAll("button[data-fb]").forEach(b =>
+      b.addEventListener("click", async () => {
+        b.disabled = true;
+        try {
+          const res = await api(`/admin/sentinel/alerts/${b.dataset.id}/feedback`, { method: "POST",
+            body: JSON.stringify({ verdict: b.dataset.fb }) });
+          const r = await res.json().catch(() => ({}));
+          if (!res.ok) { alert(r.detail || "Couldn't record that."); b.disabled = false; return; }
+          if (r.learned) alert("Proposed a rule from this catch:\n\n“" + r.learned + "”\n\nIt's waiting for your approval under “Learned rules” — edit it, approve it, or decline it. Libra won't apply it until you approve.");
+          await Promise.all([loadSentinel(), loadRules()]);
+        } catch (e) { b.disabled = false; }
+      }));
+  }
+  renderFeed(false);
+  wireFeedButtons();
   await loadRules();
 }
 
