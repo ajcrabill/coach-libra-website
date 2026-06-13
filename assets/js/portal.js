@@ -203,13 +203,30 @@ function sentItemHTML(it) {
   const tail = it.status === "readable"
     ? (it.words ? `${it.words.toLocaleString()} words` : "received")
     : it.status === "pending" ? "still reading it" : "couldn't open it";
-  // Ingested links render as real, clickable destinations (the old list had none).
-  const name = it.url
-    ? `<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">${esc(it.label || it.url)}</a>`
-    : `<b>${esc(it.label || "untitled")}</b>`;
+  let name;
+  if (it.url) {
+    // Ingested links render as real, clickable destinations (open the live page).
+    name = `<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">${esc(it.label || it.url)}</a>`;
+  } else if (it.status === "readable") {
+    // Uploads / pasted writing live on the server with no public URL — open via an
+    // authenticated fetch (a plain link can't carry the sign-in token).
+    name = `<button class="link sent-open" data-kind="${esc(it.kind)}" data-id="${it.id}" title="Open what you sent">${esc(it.label || "untitled")}</button>`;
+  } else {
+    name = `<b>${esc(it.label || "untitled")}</b>`;
+  }
   return `<li class="sent-item">${name}` +
     `<span class="muted"> · ${esc(it.channel || "")} · ${esc(tail)}</span>` +
     `<button class="link sent-del" data-kind="${esc(it.kind)}" data-id="${it.id}" title="Remove this">remove</button></li>`;
+}
+async function openSample(kind, id) {
+  try {
+    const res = await api("/me/samples/" + kind + "/" + id + "/file");
+    if (!res.ok) { alert("That file isn't available to open."); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank", "noopener");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (e) { alert("Couldn't open that — try again."); }
 }
 function renderSent() {
   const list = $("sent-list");
@@ -232,6 +249,8 @@ function renderSent() {
   }
   list.querySelectorAll("button.sent-del").forEach(b =>
     b.addEventListener("click", () => deleteSample(b.dataset.kind, b.dataset.id)));
+  list.querySelectorAll("button.sent-open").forEach(b =>
+    b.addEventListener("click", () => openSample(b.dataset.kind, b.dataset.id)));
 }
 async function deleteSample(kind, id) {
   if (!confirm("Remove this from what you've sent me? This can't be undone.")) return;
