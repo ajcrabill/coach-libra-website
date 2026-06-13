@@ -82,10 +82,24 @@ function bookCard(b, showTitle) {
       (meta.length ? `<div class="finish-meta">${esc(meta.join(" · "))}</div>` : "") + `</div>`;
   }
   let title = showTitle ? `<div class="book-title">${esc(b.title || "Untitled book")}</div>` : "";
+  // "Email me the next step" — moves the current ask into the author's inbox, where they
+  // actually reply (a quick voice memo). Shown when it's their turn.
+  let emailStep = (b.court === "you" && b.manuscript_id)
+    ? `<button class="btn small email-step" data-book="${b.manuscript_id}">📩 Email me this step</button>` : "";
   return `<div class="bookcard">${title}${finish}${steps}` +
     `<div class="bigstep"><span class="dot ${b.court}"></span><div><div class="stepname">${esc(b.step_label)}</div>` +
     `<div class="muted">${court}</div></div></div>` +
-    `<p class="next"><b>Next:</b> ${esc(b.next)}</p>${invested}${last}</div>`;
+    `<p class="next"><b>Next:</b> ${esc(b.next)}</p>${invested}${last}${emailStep}</div>`;
+}
+async function emailNextStep(btn) {
+  const id = btn.dataset.book, old = btn.textContent;
+  btn.disabled = true; btn.textContent = "Sending…";
+  try {
+    const res = await api("/me/books/" + id + "/email-next-step", { method: "POST" });
+    const d = await res.json().catch(() => ({}));
+    btn.textContent = res.ok ? (d.message || "Sent — check your inbox.") : "Couldn't send — try again.";
+  } catch (e) { btn.textContent = "Couldn't send — try again."; }
+  setTimeout(() => { btn.disabled = false; btn.textContent = old; }, 6000);
 }
 async function loadBooks() {
   const [pg, dl] = await Promise.all([
@@ -119,6 +133,8 @@ function renderBook(pg) {
   const b = BOOKS.find(x => x.id === CURRENT) || BOOKS[0];
   renderRename(b);
   $("progress-body").innerHTML = bookCard(b.prog, false) + VOICE_LINE;
+  const eb = $("progress-body").querySelector("button.email-step");
+  if (eb) eb.addEventListener("click", () => emailNextStep(eb));
   renderDeliverables(b);
   $("upload-help").textContent = "Add a document, PDF, or recording for " +
     (b.title ? "“" + b.title + "”" : "this book") + ".";
