@@ -136,7 +136,79 @@ function renderOverview() {
     b.addEventListener("click", () => doDeliver(b.dataset.deliver, b)));
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist()]); }
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel()]); }
+
+// ---- Sentinel (watchdog): held emails + alerts ----
+async function loadSentinel() {
+  let d;
+  try { d = await (await api("/admin/sentinel")).json(); }
+  catch (e) { return; }
+  const c = d.counts || {};
+  $("sentinel-strip").innerHTML =
+    (c.held_open ? `<span class="pill you">${c.held_open} held</span>` : `<span class="pill">0 held</span>`) +
+    (c.critical ? `<span class="pill" style="border-color:var(--oxblood);color:var(--oxblood)">🔴 ${c.critical}</span>` : "") +
+    (c.warn ? `<span class="pill">🟡 ${c.warn}</span>` : "") +
+    (c.auto_fixed ? `<span class="pill">${c.auto_fixed} auto-fixed</span>` : "");
+  const held = d.held || [];
+  $("sentinel-held").innerHTML = held.length ? held.map(h =>
+    `<div class="held" data-id="${h.id}">` +
+    `<div class="held-head"><b>${esc(h.author)}</b> · ${esc(h.book)} <span class="soft">(${esc(h.kind)})</span></div>` +
+    `<div class="soft held-why">Held because: ${esc((h.issues || []).join("; ") || "reviewer flagged it")}</div>` +
+    `<div class="soft">Subject: ${esc(h.subject)}</div>` +
+    `<textarea class="held-draft" rows="8">${esc(h.draft)}</textarea>` +
+    `<div class="held-verdict soft"></div>` +
+    `<div class="held-actions"><input class="held-instr" placeholder="Rewrite instructions — e.g. 'name the book and drop the second question'" />` +
+    `<button class="btn small" data-act="rewrite">Rewrite</button>` +
+    `<button class="btn small" data-act="send">Send to author</button>` +
+    `<button class="link danger" data-act="dismiss">Dismiss</button></div></div>`).join("")
+    : `<p class="soft">No held emails. 🎉</p>`;
+  $("sentinel-held").querySelectorAll(".held").forEach(card => {
+    const id = card.dataset.id;
+    const draft = () => card.querySelector(".held-draft");
+    const instr = () => card.querySelector(".held-instr");
+    const verdict = card.querySelector(".held-verdict");
+    card.querySelector('[data-act="rewrite"]').addEventListener("click", async (ev) => {
+      const b = ev.target; if (!instr().value.trim()) { instr().focus(); return; }
+      b.disabled = true; b.textContent = "Rewriting…";
+      try {
+        const res = await api(`/admin/sentinel/holds/${id}/rewrite`, { method: "POST",
+          body: JSON.stringify({ instructions: instr().value, draft: draft().value }) });
+        const r = await res.json().catch(() => ({}));
+        if (!res.ok) { verdict.textContent = r.detail || "Rewrite failed."; }
+        else {
+          draft().value = r.draft || draft().value;
+          const v = r.verdict || {};
+          verdict.textContent = v.block ? ("⚠ reviewer still flags: " + (v.issues || []).join("; "))
+            : "✓ reviewer is satisfied — your call to send.";
+        }
+      } catch (e) { verdict.textContent = "Something went wrong."; }
+      b.disabled = false; b.textContent = "Rewrite";
+    });
+    card.querySelector('[data-act="send"]').addEventListener("click", async (ev) => {
+      if (!confirm("Send this email to the author now?")) return;
+      ev.target.disabled = true;
+      try {
+        const res = await api(`/admin/sentinel/holds/${id}/send`, { method: "POST",
+          body: JSON.stringify({ draft: draft().value }) });
+        if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.detail || "Couldn't send."); ev.target.disabled = false; return; }
+        await loadSentinel();
+      } catch (e) { ev.target.disabled = false; }
+    });
+    card.querySelector('[data-act="dismiss"]').addEventListener("click", async () => {
+      if (!confirm("Dismiss this held email without sending?")) return;
+      try {
+        const res = await api(`/admin/sentinel/holds/${id}/dismiss`, { method: "POST" });
+        if (res.ok) await loadSentinel(); else alert("Couldn't dismiss.");
+      } catch (e) { alert("Something went wrong."); }
+    });
+  });
+  const feed = d.feed || [];
+  $("sentinel-feed").innerHTML = feed.length ? `<ul class="needs">` + feed.map(f => {
+    const dot = f.severity === "critical" ? "🔴" : f.severity === "warn" ? "🟡" : "⚪";
+    const fixed = f.auto_fixed ? ` <span class="soft">[auto-fixed]</span>` : "";
+    return `<li><span>${dot} ${esc(f.summary || f.category || "")}${fixed}</span></li>`;
+  }).join("") + `</ul>` : `<p class="soft">No recent alerts.</p>`;
+}
 
 async function loadFunnel() {
   const d = await (await api("/admin/funnel")).json();

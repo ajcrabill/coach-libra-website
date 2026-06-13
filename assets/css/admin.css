@@ -43,6 +43,17 @@ table.grid td.stale{color:var(--oxblood);font-weight:600}
 .link.danger{color:var(--ink-soft);font-size:.82rem;text-decoration:none}
 .link.danger:hover{color:var(--oxblood);text-decoration:underline}
 
+/* Sentinel — held-email cards */
+.held{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0 0 12px;background:var(--paper-2)}
+.held-head{font-weight:600;margin-bottom:3px}
+.held-why{color:var(--oxblood)!important;font-size:.85rem;margin-bottom:4px}
+.held-draft{width:100%;box-sizing:border-box;font:inherit;font-size:.9rem;line-height:1.45;padding:9px;border:1px solid var(--line);border-radius:6px;margin:7px 0;resize:vertical;background:#fff}
+.held-verdict{font-size:.85rem;margin:2px 0 6px;min-height:1em}
+.held-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.held-instr{flex:1 1 300px;font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:6px}
+#sentinel-feed-wrap{margin-top:14px}
+#sentinel-feed-wrap summary{cursor:pointer;padding:4px 0}
+
 .needs{list-style:none;padding:0;margin:0}
 .needs li{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:.6em 0;border-bottom:1px dotted var(--line)}
 .needs li:last-child{border-bottom:none}
