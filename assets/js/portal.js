@@ -188,6 +188,7 @@ function renderBook(pg) {
   $("progress-body").innerHTML = bookCard(b.prog, false) + VOICE_LINE;
   wireCardActions($("progress-body"));
   renderDeliverables(b);
+  renderSent();          // re-scope "what you've sent me" to the selected book
   $("upload-help").textContent = "Add a document, PDF, or recording for " +
     (b.title ? "“" + b.title + "”" : "this book") + ".";
 }
@@ -301,24 +302,33 @@ async function openSample(kind, id) {
   } catch (e) { alert("Couldn't open that — try again."); }
 }
 function renderSent() {
+  sentPanel();
   const list = $("sent-list");
+  if (!list) return;
   if (!SENT.items.length) {
     list.innerHTML = `<li><span class="muted">Nothing yet — anything you upload, link, or email me will be listed here.</span></li>`;
     return;
   }
-  if (SENT.multi) {
-    // Group by book; shared (no manuscript_id) material goes under "Across all your books".
-    const groups = {};
-    SENT.items.forEach(it => { (groups[it.manuscript_id ?? "_shared"] ||= []).push(it); });
-    const order = Object.keys(SENT.books).concat(["_shared"]);
-    list.innerHTML = order.filter(k => groups[k] && groups[k].length).map(k => {
-      const heading = k === "_shared" ? "Across all your books" : (SENT.books[k] || "Untitled book");
-      return `<li class="sent-group"><div class="sent-group-h">${esc(heading)}</div>` +
-        `<ul class="sent-sub">` + groups[k].map(sentItemHTML).join("") + `</ul></li>`;
-    }).join("");
+  // Scope to the SELECTED book so switching tabs changes this panel: the current book's
+  // items, plus shared voice material (no manuscript_id) that counts for every book.
+  // Single-book authors (no tabs) just see everything.
+  let mine, shared;
+  if (SENT.multi && CURRENT != null) {
+    mine = SENT.items.filter(it => it.manuscript_id === CURRENT);
+    shared = SENT.items.filter(it => it.manuscript_id == null);
   } else {
-    list.innerHTML = SENT.items.map(sentItemHTML).join("");
+    mine = SENT.items; shared = [];
   }
+  if (!mine.length && !shared.length) {
+    list.innerHTML = `<li><span class="muted">Nothing for this book yet — upload, link, or email me anything and it'll show here.</span></li>`;
+    return;
+  }
+  let html = mine.map(sentItemHTML).join("");
+  if (shared.length) {
+    html += `<li class="sent-group"><div class="sent-group-h">Across all your books</div>` +
+      `<ul class="sent-sub">` + shared.map(sentItemHTML).join("") + `</ul></li>`;
+  }
+  list.innerHTML = html;
   list.querySelectorAll("button.sent-del").forEach(b =>
     b.addEventListener("click", () => deleteSample(b.dataset.kind, b.dataset.id)));
   list.querySelectorAll("button.sent-open").forEach(b =>
