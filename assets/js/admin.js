@@ -145,35 +145,50 @@ async function loadEscalations() {
   catch (e) { return; }
   const escs = d.escalations || [];
   const fmtAt = (iso) => { const t = new Date(iso); return isNaN(t) ? "" : t.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + ", " + t.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); };
-  $("sentinel-escalations").innerHTML = escs.length ? escs.map(x =>
-    `<div class="held" data-id="${x.id}">` +
-    `<div class="held-head"><b>${esc(x.author)}</b> · ${esc(x.book)} <span class="soft">${esc(fmtAt(x.at))}</span></div>` +
-    `<div class="soft held-why">Flagged: ${esc(x.reason)}</div>` +
-    `<div class="esc-detail soft">${esc(x.detail)}</div>` +
-    `<textarea class="held-draft" rows="6" placeholder="Type your reply to ${esc(x.author_email)} — or use Draft to have Coach Libra start it."></textarea>` +
-    `<div class="held-actions">` +
-    `<input class="held-instr" placeholder="Draft instructions — e.g. 'thank her for the 40k words, ask her to send the manuscript'" />` +
-    `<button class="btn small" data-act="draft">Draft</button>` +
-    `<button class="btn small" data-act="reply">Send reply</button>` +
-    `<button class="link danger" data-act="dismiss">Dismiss</button></div></div>`).join("")
+  // A compact, clickable list of books that need your response. Click a row -> it slides
+  // open with the email interface, and a conversation-aware draft is generated for you.
+  $("sentinel-escalations").innerHTML = escs.length ? `<ul class="esc-list">` + escs.map(x =>
+    `<li class="esc-item" data-id="${x.id}" data-drafted="0">` +
+      `<button class="esc-row" data-toggle>` +
+        `<span class="esc-who"><b>${esc(x.author)}</b> · ${esc(x.book)}</span>` +
+        `<span class="soft esc-meta">${esc(x.reason)} · ${esc(fmtAt(x.at))} <span class="esc-caret">▸</span></span>` +
+      `</button>` +
+      `<div class="esc-body">` +
+        `<div class="esc-detail soft">${esc(x.last_message || x.detail || "(no message captured)")}</div>` +
+        `<textarea class="held-draft" rows="8" placeholder="Drafting your reply…"></textarea>` +
+        `<div class="held-actions">` +
+          `<input class="held-instr" placeholder="Adjust the draft — e.g. 'warmer, and ask for the manuscript file' — then Redraft" />` +
+          `<button class="btn small" data-act="redraft">Redraft</button>` +
+          `<button class="btn small" data-act="reply">Send reply</button>` +
+          `<button class="link danger" data-act="dismiss">Dismiss</button>` +
+        `</div>` +
+      `</div></li>`).join("") + `</ul>`
     : `<p class="soft">Nothing awaiting your reply. 🎉</p>`;
-  $("sentinel-escalations").querySelectorAll(".held").forEach(card => {
-    const id = card.dataset.id;
-    const draft = () => card.querySelector(".held-draft");
-    const instr = () => card.querySelector(".held-instr");
-    card.querySelector('[data-act="draft"]').addEventListener("click", async (ev) => {
-      const b = ev.target;   // instructions optional — Draft reads the convo on its own
-      b.disabled = true; b.textContent = "Drafting…";
+  $("sentinel-escalations").querySelectorAll(".esc-item").forEach(item => {
+    const id = item.dataset.id;
+    const draft = () => item.querySelector(".held-draft");
+    const instr = () => item.querySelector(".held-instr");
+    const genDraft = async () => {
+      draft().value = ""; draft().placeholder = "Drafting your reply…";
       try {
         const res = await api(`/admin/escalations/${id}/draft`, { method: "POST",
           body: JSON.stringify({ instructions: instr().value || "" }) });
         const r = await res.json().catch(() => ({}));
         if (res.ok && r.draft) draft().value = r.draft;
-        else alert(r.detail || "Draft failed — try again.");
-      } catch (e) { alert("Something went wrong — try again."); }
-      b.disabled = false; b.textContent = "Draft";
+        else draft().placeholder = (r.detail || "Couldn't draft") + " — type your reply here.";
+      } catch (e) { draft().placeholder = "Couldn't draft — type your reply here."; }
+    };
+    item.querySelector("[data-toggle]").addEventListener("click", async () => {
+      const opening = !item.classList.contains("open");
+      item.classList.toggle("open");
+      if (opening && item.dataset.drafted === "0") { item.dataset.drafted = "1"; await genDraft(); }
     });
-    card.querySelector('[data-act="reply"]').addEventListener("click", async (ev) => {
+    item.querySelector('[data-act="redraft"]').addEventListener("click", async (ev) => {
+      ev.stopPropagation(); ev.target.disabled = true; ev.target.textContent = "Redrafting…";
+      await genDraft(); ev.target.disabled = false; ev.target.textContent = "Redraft";
+    });
+    item.querySelector('[data-act="reply"]').addEventListener("click", async (ev) => {
+      ev.stopPropagation();
       if (!draft().value.trim()) { draft().focus(); return; }
       if (!confirm("Send this reply to the author now?")) return;
       ev.target.disabled = true;
@@ -181,14 +196,15 @@ async function loadEscalations() {
         const res = await api(`/admin/escalations/${id}/reply`, { method: "POST",
           body: JSON.stringify({ draft: draft().value }) });
         if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.detail || "Couldn't send."); ev.target.disabled = false; return; }
-        await loadEscalations();
+        await Promise.all([loadEscalations(), loadOverview()]);
       } catch (e) { ev.target.disabled = false; }
     });
-    card.querySelector('[data-act="dismiss"]').addEventListener("click", async () => {
+    item.querySelector('[data-act="dismiss"]').addEventListener("click", async (ev) => {
+      ev.stopPropagation();
       if (!confirm("Dismiss without replying (you handled it yourself)?")) return;
       try {
         const res = await api(`/admin/escalations/${id}/dismiss`, { method: "POST" });
-        if (res.ok) await loadEscalations(); else alert("Couldn't dismiss.");
+        if (res.ok) await Promise.all([loadEscalations(), loadOverview()]); else alert("Couldn't dismiss.");
       } catch (e) { alert("Something went wrong."); }
     });
   });
