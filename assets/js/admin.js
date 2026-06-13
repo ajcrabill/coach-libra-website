@@ -56,6 +56,7 @@ function ovValue(r, key) {
   if (key === "court") return (r.court || "").toLowerCase();
   if (key === "voice") return (r.voice || "").toLowerCase();
   if (key === "since") return r.since_hours == null ? Infinity : r.since_hours;  // hours, numeric
+  if (key === "cost") return parseFloat(String(r.cost || "0").replace(/[^0-9.]/g, "")) || 0;
   return (r.inputs && r.inputs[key]) || 0;     // input-method counts (numeric)
 }
 function th(key, label, center) {
@@ -64,17 +65,21 @@ function th(key, label, center) {
 }
 async function loadOverview() {
   const d = await (await api("/admin/overview")).json();
-  OV = { rows: d.rows || [], methods: d.input_methods || [], tally: d.tally || {} };
+  OV = { rows: d.rows || [], methods: d.input_methods || [], tally: d.tally || {},
+         cost: d.cost || {} };
   renderOverview();
 }
 function renderOverview() {
   const { methods, tally: t } = OV;
+  const cost = OV.cost || {};
   $("tally").innerHTML =
     `<span class="pill">${OV.rows.length} projects</span>` +
     `<span class="pill you">${t.YOU || 0} need you</span>` +
     `<span class="pill">${t.author || 0} on author</span>` +
     `<span class="pill">${t.system || 0} in progress</span>` +
-    `<span class="pill">${t.done || 0} delivered</span>`;
+    `<span class="pill">${t.done || 0} delivered</span>` +
+    (cost.total ? `<span class="pill" title="${esc(cost.note || "")}">${esc(cost.total)} LLM` +
+      (cost.shared ? ` · ${esc(cost.shared)} shared` : "") + `</span>` : "");
   const q = SEARCH.trim().toLowerCase();
   let rows = OV.rows.filter(r => !q ||
     [r.author, r.title, r.stage, r.status].some(v => (v || "").toLowerCase().includes(q)));
@@ -86,19 +91,26 @@ function renderOverview() {
   }
   const head = th("author", "Author") + th("title", "Book") + th("stage", "Stage") +
     th("voice", "Voice-print") + methods.map(mth => th(mth, SHORT[mth] || mth, true)).join("") +
-    th("since", "Last from author") + th("court", "Court");
+    th("cost", "LLM $") + th("since", "Last from author") + th("court", "Court") +
+    `<th class="c">Manage</th>`;
   const body = rows.map(r => {
     const you = r.court_key === "YOU";
     const cells = methods.map(mth => `<td class="c">${r.inputs && r.inputs[mth] ? r.inputs[mth] : "·"}</td>`).join("");
     // Flag a long silence from the author (≥3 days) so stalls jump out.
     const stale = r.since_hours != null && r.since_hours >= 72;
     const sinceCell = `<td class="c soft${stale ? " stale" : ""}" title="Time since the author last emailed or sent a submission">${esc(r.since_author || "—")}</td>`;
+    const costCell = `<td class="c soft" title="LLM spend attributed to this book (drafting, editing, reply handling)">${esc(r.cost || "$0")}</td>`;
+    const manage = `<td class="c soft">` +
+      (r.manuscript_id
+        ? `<button class="link danger" data-del-book="${r.manuscript_id}" data-title="${esc(r.title)}" title="Delete just this book">delete book</button> · `
+        : "") +
+      `<button class="link danger" data-purge="${esc(r.author_email)}" title="Permanently delete this author and all their data">purge author</button></td>`;
     return `<tr class="${you ? "you" : ""}">` +
       `<td>${esc(r.author)}</td><td>${esc(r.title)}</td>` +
       `<td>${esc(r.stage)} <span class="status">(${esc(r.status)})</span></td>` +
-      `<td class="soft">${esc(r.voice)}</td>${cells}${sinceCell}` +
-      `<td>${you ? "<b>" + esc(r.court) + " ◀</b>" : esc(r.court)}</td></tr>`;
-  }).join("") || `<tr><td colspan="${6 + methods.length}" class="soft">${q ? "No matches." : "No active projects."}</td></tr>`;
+      `<td class="soft">${esc(r.voice)}</td>${cells}${costCell}${sinceCell}` +
+      `<td>${you ? "<b>" + esc(r.court) + " ◀</b>" : esc(r.court)}</td>${manage}</tr>`;
+  }).join("") || `<tr><td colspan="${8 + methods.length}" class="soft">${q ? "No matches." : "No active projects."}</td></tr>`;
   $("overview").innerHTML = `<table class="grid"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
   $("overview").querySelectorAll("th[data-sort]").forEach(h =>
     h.addEventListener("click", () => {
@@ -106,6 +118,10 @@ function renderOverview() {
       if (SORT.key === k) SORT.dir *= -1; else { SORT.key = k; SORT.dir = 1; }
       renderOverview();
     }));
+  $("overview").querySelectorAll("button[data-del-book]").forEach(b =>
+    b.addEventListener("click", () => deleteBook(b.dataset.delBook, b.dataset.title, b)));
+  $("overview").querySelectorAll("button[data-purge]").forEach(b =>
+    b.addEventListener("click", () => purgeAuthor(b.dataset.purge, b)));
 
   // needs-your-attention list (always full set, not filtered)
   const needs = OV.rows.filter(r => r.court_key === "YOU");
@@ -166,6 +182,29 @@ async function wlAction(path, id, btn) {
   } catch (e) { btn.disabled = false; }
 }
 
+async function deleteBook(msId, title, btn) {
+  if (!confirm(`Delete the book "${title || "Untitled"}"? This removes its chapters, profile, and samples for this book only — the author and their other books stay. This can't be undone.`)) return;
+  btn.disabled = true; btn.textContent = "deleting…";
+  try {
+    const res = await api("/admin/books/" + Number(msId) + "/delete", { method: "POST", body: JSON.stringify({ confirm: true }) });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.detail || "Couldn't delete that book."); btn.disabled = false; btn.textContent = "delete book"; return; }
+    await loadAll();
+  } catch (e) { btn.disabled = false; btn.textContent = "delete book"; }
+}
+async function purgeAuthor(email, btn) {
+  const typed = prompt(`Permanently delete this author and ALL their data (every book, message, and sample). This cannot be undone.\n\nType the author's email to confirm:\n${email}`);
+  if (typed == null) return;
+  if (typed.trim().toLowerCase() !== (email || "").trim().toLowerCase()) { alert("That didn't match — nothing was deleted."); return; }
+  // purge_author is keyed by author id; resolve it from the row's email via the overview.
+  const row = OV.rows.find(r => (r.author_email || "").toLowerCase() === (email || "").toLowerCase());
+  if (!row || row.author_id == null) { alert("Couldn't resolve that author."); return; }
+  btn.disabled = true; btn.textContent = "purging…";
+  try {
+    const res = await api("/admin/authors/" + Number(row.author_id) + "/purge", { method: "POST", body: JSON.stringify({ confirm: typed.trim() }) });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.detail || "Couldn't purge that author."); btn.disabled = false; btn.textContent = "purge author"; return; }
+    await loadAll();
+  } catch (e) { btn.disabled = false; btn.textContent = "purge author"; }
+}
 async function doDeliver(msId, btn) {
   if (!confirm("Deliver this finished manuscript to the author? This sends it to them.")) return;
   btn.disabled = true; btn.textContent = "Delivering…";

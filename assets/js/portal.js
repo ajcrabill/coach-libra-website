@@ -198,17 +198,54 @@ function sentPanel() {
   else $("view-dashboard").appendChild(panel);
   return panel;
 }
+let SENT = { items: [], books: {}, multi: false };
+function sentItemHTML(it) {
+  const tail = it.status === "readable"
+    ? (it.words ? `${it.words.toLocaleString()} words` : "received")
+    : it.status === "pending" ? "still reading it" : "couldn't open it";
+  // Ingested links render as real, clickable destinations (the old list had none).
+  const name = it.url
+    ? `<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">${esc(it.label || it.url)}</a>`
+    : `<b>${esc(it.label || "untitled")}</b>`;
+  return `<li class="sent-item">${name}` +
+    `<span class="muted"> · ${esc(it.channel || "")} · ${esc(tail)}</span>` +
+    `<button class="link sent-del" data-kind="${esc(it.kind)}" data-id="${it.id}" title="Remove this">remove</button></li>`;
+}
+function renderSent() {
+  const list = $("sent-list");
+  if (!SENT.items.length) {
+    list.innerHTML = `<li><span class="muted">Nothing yet — anything you upload, link, or email me will be listed here.</span></li>`;
+    return;
+  }
+  if (SENT.multi) {
+    // Group by book; shared (no manuscript_id) material goes under "Across all your books".
+    const groups = {};
+    SENT.items.forEach(it => { (groups[it.manuscript_id ?? "_shared"] ||= []).push(it); });
+    const order = Object.keys(SENT.books).concat(["_shared"]);
+    list.innerHTML = order.filter(k => groups[k] && groups[k].length).map(k => {
+      const heading = k === "_shared" ? "Across all your books" : (SENT.books[k] || "Untitled book");
+      return `<li class="sent-group"><div class="sent-group-h">${esc(heading)}</div>` +
+        `<ul class="sent-sub">` + groups[k].map(sentItemHTML).join("") + `</ul></li>`;
+    }).join("");
+  } else {
+    list.innerHTML = SENT.items.map(sentItemHTML).join("");
+  }
+  list.querySelectorAll("button.sent-del").forEach(b =>
+    b.addEventListener("click", () => deleteSample(b.dataset.kind, b.dataset.id)));
+}
+async function deleteSample(kind, id) {
+  if (!confirm("Remove this from what you've sent me? This can't be undone.")) return;
+  try {
+    const res = await api("/me/samples/" + kind + "/" + id, { method: "DELETE" });
+    if (res.ok) await loadSent();
+    else alert("Couldn't remove that — try again.");
+  } catch (e) { alert("Something went wrong — try again."); }
+}
 async function loadSent() {
   const d = await (await api("/me/samples")).json();
-  const items = d.items || [];
+  SENT = { items: d.items || [], books: d.books || {}, multi: !!d.multi };
   sentPanel();
-  $("sent-list").innerHTML = items.length ? items.map(it => {
-    const tail = it.status === "readable"
-      ? (it.words ? `${it.words.toLocaleString()} words` : "received")
-      : it.status === "pending" ? "still reading it" : "couldn't open it";
-    return `<li class="sent-item"><b>${esc(it.label || "untitled")}</b>` +
-      `<span class="muted"> · ${esc(it.channel || "")} · ${esc(tail)}</span></li>`;
-  }).join("") : `<li><span class="muted">Nothing yet — anything you upload, link, or email me will be listed here.</span></li>`;
+  renderSent();
 }
 async function loadSettings() {
   const d = await (await api("/me/settings")).json();

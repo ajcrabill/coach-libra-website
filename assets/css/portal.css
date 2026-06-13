@@ -65,6 +65,16 @@ label{display:block;margin-bottom:.6em;color:var(--ink-soft)}
 .link-row input{margin:0;flex:1 1 260px}
 .link-row .btn{flex:0 0 auto}
 
+/* "what you've sent me" — per-book groups + per-item remove */
+#sent-list{list-style:none;padding:0;margin:0}
+.sent-group{margin:0 0 14px}
+.sent-group-h{font-family:"Fraunces",serif;font-size:.95rem;color:var(--ink);margin:0 0 4px;font-weight:600}
+.sent-sub{list-style:none;padding:0;margin:0}
+.sent-item{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;padding:4px 0;border-bottom:1px solid var(--line)}
+.sent-item a{color:var(--oxblood)}
+.sent-del{margin-left:auto;font-size:.8rem;color:var(--ink-soft);text-decoration:none}
+.sent-del:hover{color:var(--oxblood);text-decoration:underline}
+
 /* finish-line progress */
 .finish{margin:4px 0 16px}
 .finish-top{display:flex;justify-content:space-between;align-items:baseline;font-size:.85rem;color:var(--ink-soft);margin-bottom:5px}
