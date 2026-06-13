@@ -207,15 +207,19 @@ function sentItemHTML(it) {
   if (it.url) {
     // Ingested links render as real, clickable destinations (open the live page).
     name = `<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">${esc(it.label || it.url)}</a>`;
-  } else if (it.status === "readable") {
+  } else if (it.openable) {
     // Uploads / pasted writing live on the server with no public URL — open via an
-    // authenticated fetch (a plain link can't carry the sign-in token).
+    // authenticated fetch (a plain link can't carry the sign-in token). Only shown
+    // when the backing file is actually present (openable), so it never dead-ends.
     name = `<button class="link sent-open" data-kind="${esc(it.kind)}" data-id="${it.id}" title="Open what you sent">${esc(it.label || "untitled")}</button>`;
   } else {
     name = `<b>${esc(it.label || "untitled")}</b>`;
   }
+  // Readable-but-not-openable = we logged it but no longer hold the original file.
+  const note = (!it.url && !it.openable && it.status === "readable")
+    ? `<span class="muted"> · on file, original not stored</span>` : "";
   return `<li class="sent-item">${name}` +
-    `<span class="muted"> · ${esc(it.channel || "")} · ${esc(tail)}</span>` +
+    `<span class="muted"> · ${esc(it.channel || "")} · ${esc(tail)}</span>${note}` +
     `<button class="link sent-del" data-kind="${esc(it.kind)}" data-id="${it.id}" title="Remove this">remove</button></li>`;
 }
 async function openSample(kind, id) {
