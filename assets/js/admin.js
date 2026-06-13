@@ -220,7 +220,9 @@ async function loadSentinel() {
     (c.held_open ? `<span class="pill you">${c.held_open} held</span>` : `<span class="pill">0 held</span>`) +
     (c.critical ? `<span class="pill" style="border-color:var(--oxblood);color:var(--oxblood)">🔴 ${c.critical}</span>` : "") +
     (c.warn ? `<span class="pill">🟡 ${c.warn}</span>` : "") +
-    (c.auto_fixed ? `<span class="pill">${c.auto_fixed} auto-fixed</span>` : "");
+    (c.auto_fixed ? `<span class="pill">${c.auto_fixed} auto-fixed</span>` : "") +
+    (c.good_catch || c.false_alarm ? `<span class="pill" title="alerts you've labeled">✓ ${c.good_catch || 0} good · ✗ ${c.false_alarm || 0} false</span>` : "") +
+    (c.unlabeled ? `<span class="pill">${c.unlabeled} to review</span>` : "");
   const held = d.held || [];
   $("sentinel-held").innerHTML = held.length ? held.map(h =>
     `<div class="held" data-id="${h.id}">` +
@@ -275,11 +277,47 @@ async function loadSentinel() {
     });
   });
   const feed = d.feed || [];
-  $("sentinel-feed").innerHTML = feed.length ? `<ul class="needs">` + feed.map(f => {
+  $("sentinel-feed").innerHTML = feed.length ? `<ul class="needs feed-list">` + feed.map(f => {
     const dot = f.severity === "critical" ? "🔴" : f.severity === "warn" ? "🟡" : "⚪";
     const fixed = f.auto_fixed ? ` <span class="soft">[auto-fixed]</span>` : "";
-    return `<li><span>${dot} ${esc(f.summary || f.category || "")}${fixed}</span></li>`;
+    const label = f.feedback === "good_catch" ? `<span class="fb-label good">✓ good catch</span>`
+      : f.feedback === "false_alarm" ? `<span class="fb-label bad">✗ false alarm</span>`
+      : `<span class="fb-actions"><button class="link" data-fb="good_catch" data-id="${f.id}">✓ good catch</button> · <button class="link" data-fb="false_alarm" data-id="${f.id}">✗ false alarm</button></span>`;
+    return `<li class="feed-row"><span>${dot} ${esc(f.summary || f.category || "")}${fixed}</span>${label}</li>`;
   }).join("") + `</ul>` : `<p class="soft">No recent alerts.</p>`;
+  $("sentinel-feed").querySelectorAll("button[data-fb]").forEach(b =>
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      try {
+        const res = await api(`/admin/sentinel/alerts/${b.dataset.id}/feedback`, { method: "POST",
+          body: JSON.stringify({ verdict: b.dataset.fb }) });
+        const r = await res.json().catch(() => ({}));
+        if (!res.ok) { alert(r.detail || "Couldn't record that."); b.disabled = false; return; }
+        if (r.learned) alert("Learned a new rule:\n\n“" + r.learned + "”\n\nLibra will apply it going forward. (Manage under Learned rules.)");
+        await Promise.all([loadSentinel(), loadRules()]);
+      } catch (e) { b.disabled = false; }
+    }));
+  await loadRules();
+}
+
+async function loadRules() {
+  let d;
+  try { d = await (await api("/admin/rules")).json(); } catch (e) { return; }
+  const box = $("sentinel-rules"); if (!box) return;
+  const rules = d.rules || [];
+  box.innerHTML = rules.length ? `<ul class="needs">` + rules.map(r =>
+    `<li><span>${esc(r.correction)}${r.is_hard ? ' <span class="soft">(hard)</span>' : ''} ` +
+    `<span class="soft">[${esc(r.scope)}${r.scope_key ? '/' + esc(r.scope_key) : ''}]</span></span>` +
+    `<button class="link danger" data-rm="${r.id}">remove</button></li>`).join("") + `</ul>`
+    : `<p class="soft">No learned rules yet — confirm a good catch and one appears here.</p>`;
+  box.querySelectorAll("button[data-rm]").forEach(b =>
+    b.addEventListener("click", async () => {
+      if (!confirm("Retire this learned rule?")) return;
+      try {
+        const res = await api(`/admin/rules/${b.dataset.rm}/remove`, { method: "POST" });
+        if (res.ok) await loadRules(); else alert("Couldn't remove.");
+      } catch (e) { alert("Something went wrong."); }
+    }));
 }
 
 async function loadFunnel() {

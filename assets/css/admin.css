@@ -69,6 +69,15 @@ h3.sub{font-size:.95rem;margin:14px 0 8px;color:var(--ink-soft);text-transform:u
 .esc-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 13px}
 .esc-item.open .esc-body{max-height:1200px;padding:4px 13px 13px}
 
+/* alert feedback (good catch / false alarm) — the teaching loop */
+.feed-list .feed-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.fb-actions{white-space:nowrap;font-size:.82rem}
+.fb-label{font-size:.8rem;white-space:nowrap}
+.fb-label.good{color:#2e7d32}
+.fb-label.bad{color:var(--ink-soft)}
+#sentinel-rules-wrap,#sentinel-feed-wrap{margin-top:12px}
+#sentinel-rules-wrap summary{cursor:pointer;padding:4px 0}
+
 .needs{list-style:none;padding:0;margin:0}
 .needs li{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:.6em 0;border-bottom:1px dotted var(--line)}
 .needs li:last-child{border-bottom:none}
