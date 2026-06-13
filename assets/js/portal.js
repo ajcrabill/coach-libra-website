@@ -82,14 +82,67 @@ function bookCard(b, showTitle) {
       (meta.length ? `<div class="finish-meta">${esc(meta.join(" · "))}</div>` : "") + `</div>`;
   }
   let title = showTitle ? `<div class="book-title">${esc(b.title || "Untitled book")}</div>` : "";
-  // "Email me the next step" — moves the current ask into the author's inbox, where they
-  // actually reply (a quick voice memo). Shown when it's their turn.
-  let emailStep = (b.court === "you" && b.manuscript_id)
-    ? `<button class="btn small email-step" data-book="${b.manuscript_id}">📩 Email me this step</button>` : "";
+  const id = b.manuscript_id;
+  // Action row. Paused books show only Resume; active books on the author's turn get
+  // the inbox/remind/pause controls. "Remind" and "Pause" reveal small option chips.
+  let actions = "";
+  if (id) {
+    if (b.paused) {
+      const until = b.paused_until ? ` <span class="muted">(auto-resumes ${fmtDate(b.paused_until)})</span>` : "";
+      actions = `<div class="card-actions"><span class="muted">⏸ Paused.${until}</span>` +
+        `<button class="btn small" data-act="resume" data-book="${id}">▶ Resume</button></div>`;
+    } else {
+      const remindNote = b.reminder_at ? `<span class="muted reminder-note">⏰ Reminder set for ${fmtDate(b.reminder_at)}</span>` : "";
+      const emailStep = b.court === "you"
+        ? `<button class="btn small email-step" data-book="${id}">📩 Email me this step</button>` : "";
+      actions = `<div class="card-actions">${emailStep}` +
+        `<button class="link card-link" data-act="remind" data-book="${id}">⏰ Remind me</button>` +
+        `<button class="link card-link" data-act="pause" data-book="${id}">⏸ Pause</button>` +
+        `${remindNote}<div class="opts" data-opts="${id}"></div></div>`;
+    }
+  }
   return `<div class="bookcard">${title}${finish}${steps}` +
     `<div class="bigstep"><span class="dot ${b.court}"></span><div><div class="stepname">${esc(b.step_label)}</div>` +
     `<div class="muted">${court}</div></div></div>` +
-    `<p class="next"><b>Next:</b> ${esc(b.next)}</p>${invested}${last}${emailStep}</div>`;
+    `<p class="next"><b>Next:</b> ${esc(b.next)}</p>${invested}${last}${actions}</div>`;
+}
+function fmtDate(iso) {
+  const d = new Date(iso); if (isNaN(d)) return "";
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+const REMIND_OPTS = [["tomorrow", "Tomorrow"], ["3days", "In 3 days"], ["1week", "In a week"], ["2weeks", "In 2 weeks"]];
+const PAUSE_OPTS = [["2", "For 2 weeks"], ["4", "For a month"], ["", "Until I'm back"]];
+function wireCardActions(root) {
+  const optsBox = () => root.querySelector(".opts");
+  root.querySelectorAll("button.email-step").forEach(b =>
+    b.addEventListener("click", () => emailNextStep(b)));
+  root.querySelectorAll('button[data-act="resume"]').forEach(b =>
+    b.addEventListener("click", () => bookAction("resume", b.dataset.book, {})));
+  root.querySelectorAll('button[data-act="remind"]').forEach(b =>
+    b.addEventListener("click", () => showOpts(optsBox(), "remind", b.dataset.book)));
+  root.querySelectorAll('button[data-act="pause"]').forEach(b =>
+    b.addEventListener("click", () => showOpts(optsBox(), "pause", b.dataset.book)));
+}
+function showOpts(box, kind, id) {
+  if (!box) return;
+  const opts = kind === "remind" ? REMIND_OPTS : PAUSE_OPTS;
+  box.innerHTML = `<span class="muted">${kind === "remind" ? "Nudge me:" : "Pause:"}</span> ` +
+    opts.map(([v, label]) => `<button class="link opt" data-v="${v}">${label}</button>`).join(" · ") +
+    ` <button class="link opt opt-cancel" data-v="__x">cancel</button>`;
+  box.querySelectorAll("button.opt").forEach(btn => btn.addEventListener("click", () => {
+    if (btn.dataset.v === "__x") { box.innerHTML = ""; return; }
+    if (kind === "remind") bookAction("remind", id, { when: btn.dataset.v });
+    else bookAction("pause", id, { weeks: btn.dataset.v ? Number(btn.dataset.v) : null });
+  }));
+}
+async function bookAction(act, id, payload) {
+  try {
+    const res = await api("/me/books/" + id + "/" + act, { method: "POST", body: JSON.stringify(payload) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(d.detail || "Couldn't do that — try again."); return; }
+    if (d.message) { /* brief confirmation, then refresh state */ }
+    await loadBooks();   // re-render so paused/reminder state updates
+  } catch (e) { alert("Something went wrong — try again."); }
 }
 async function emailNextStep(btn) {
   const id = btn.dataset.book, old = btn.textContent;
@@ -133,8 +186,7 @@ function renderBook(pg) {
   const b = BOOKS.find(x => x.id === CURRENT) || BOOKS[0];
   renderRename(b);
   $("progress-body").innerHTML = bookCard(b.prog, false) + VOICE_LINE;
-  const eb = $("progress-body").querySelector("button.email-step");
-  if (eb) eb.addEventListener("click", () => emailNextStep(eb));
+  wireCardActions($("progress-body"));
   renderDeliverables(b);
   $("upload-help").textContent = "Add a document, PDF, or recording for " +
     (b.title ? "“" + b.title + "”" : "this book") + ".";

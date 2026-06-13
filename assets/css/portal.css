@@ -65,6 +65,15 @@ label{display:block;margin-bottom:.6em;color:var(--ink-soft)}
 .link-row input{margin:0;flex:1 1 260px}
 .link-row .btn{flex:0 0 auto}
 
+/* book-card action row: email-step / remind / pause + reveal-on-click option chips */
+.card-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+.card-actions .card-link{font-size:.9rem}
+.card-actions .reminder-note{font-size:.85rem}
+.card-actions .opts{flex-basis:100%;display:flex;flex-wrap:wrap;gap:2px;align-items:center;font-size:.9rem}
+.card-actions .opts:empty{display:none}
+.card-actions .opt{font-size:.9rem}
+.card-actions .opt-cancel{color:var(--ink-soft)}
+
 /* "what you've sent me" — per-book groups + per-item remove */
 #sent-list{list-style:none;padding:0;margin:0}
 .sent-group{margin:0 0 14px}
