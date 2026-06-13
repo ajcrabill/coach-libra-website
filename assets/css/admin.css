@@ -78,6 +78,14 @@ h3.sub{font-size:.95rem;margin:14px 0 8px;color:var(--ink-soft);text-transform:u
 #sentinel-rules-wrap,#sentinel-feed-wrap{margin-top:12px}
 #sentinel-rules-wrap summary{cursor:pointer;padding:4px 0}
 
+/* learned rules — editable, with approve/decline */
+.rule-group-h{font-size:.82rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;margin:10px 0 6px}
+.rule-list{list-style:none;padding:0;margin:0}
+.rule-item{border:1px solid var(--line);border-radius:7px;padding:9px 10px;margin:0 0 8px;background:var(--paper-2)}
+.rule-text{width:100%;box-sizing:border-box;font:inherit;font-size:.9rem;border:1px solid var(--line);border-radius:5px;padding:6px 8px;resize:vertical}
+.rule-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
+.rule-actions{display:flex;gap:8px;align-items:center}
+
 .needs{list-style:none;padding:0;margin:0}
 .needs li{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:.6em 0;border-bottom:1px dotted var(--line)}
 .needs li:last-child{border-bottom:none}

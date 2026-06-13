@@ -293,31 +293,55 @@ async function loadSentinel() {
           body: JSON.stringify({ verdict: b.dataset.fb }) });
         const r = await res.json().catch(() => ({}));
         if (!res.ok) { alert(r.detail || "Couldn't record that."); b.disabled = false; return; }
-        if (r.learned) alert("Learned a new rule:\n\n“" + r.learned + "”\n\nLibra will apply it going forward. (Manage under Learned rules.)");
+        if (r.learned) alert("Proposed a rule from this catch:\n\n“" + r.learned + "”\n\nIt's waiting for your approval under “Learned rules” — edit it, approve it, or decline it. Libra won't apply it until you approve.");
         await Promise.all([loadSentinel(), loadRules()]);
       } catch (e) { b.disabled = false; }
     }));
   await loadRules();
 }
 
+async function ruleUpdate(id, payload) {
+  const res = await api(`/admin/rules/${id}`, { method: "POST", body: JSON.stringify(payload) });
+  if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.detail || "Couldn't update."); return false; }
+  return true;
+}
+function ruleCard(r, pending) {
+  const tag = `<span class="soft">[${esc(r.scope)}${r.scope_key ? '/' + esc(r.scope_key) : ''}${r.is_hard ? ' · hard' : ''}]</span>`;
+  const actions = pending
+    ? `<button class="btn small" data-act="approve">Approve</button> <button class="link danger" data-act="decline">Decline</button>`
+    : `<button class="btn small" data-act="save">Save edit</button> <button class="link danger" data-act="decline">Remove</button>`;
+  return `<li class="rule-item" data-id="${r.id}">` +
+    `<textarea class="rule-text" rows="2">${esc(r.correction)}</textarea>` +
+    `<div class="rule-foot">${tag}<span class="rule-actions">${actions}</span></div></li>`;
+}
 async function loadRules() {
   let d;
   try { d = await (await api("/admin/rules")).json(); } catch (e) { return; }
   const box = $("sentinel-rules"); if (!box) return;
-  const rules = d.rules || [];
-  box.innerHTML = rules.length ? `<ul class="needs">` + rules.map(r =>
-    `<li><span>${esc(r.correction)}${r.is_hard ? ' <span class="soft">(hard)</span>' : ''} ` +
-    `<span class="soft">[${esc(r.scope)}${r.scope_key ? '/' + esc(r.scope_key) : ''}]</span></span>` +
-    `<button class="link danger" data-rm="${r.id}">remove</button></li>`).join("") + `</ul>`
-    : `<p class="soft">No learned rules yet — confirm a good catch and one appears here.</p>`;
-  box.querySelectorAll("button[data-rm]").forEach(b =>
-    b.addEventListener("click", async () => {
-      if (!confirm("Retire this learned rule?")) return;
-      try {
-        const res = await api(`/admin/rules/${b.dataset.rm}/remove`, { method: "POST" });
-        if (res.ok) await loadRules(); else alert("Couldn't remove.");
-      } catch (e) { alert("Something went wrong."); }
-    }));
+  const pend = d.pending || [], active = d.active || [];
+  let html = "";
+  if (pend.length) html += `<div class="rule-group-h">Awaiting your approval (${pend.length})</div>` +
+    `<ul class="rule-list">` + pend.map(r => ruleCard(r, true)).join("") + `</ul>`;
+  html += `<div class="rule-group-h">Active rules (${active.length})</div>` +
+    (active.length ? `<ul class="rule-list">` + active.map(r => ruleCard(r, false)).join("") + `</ul>`
+      : `<p class="soft">None yet — approve a proposed rule and it appears here.</p>`);
+  box.innerHTML = html;
+  box.querySelectorAll(".rule-item").forEach(item => {
+    const id = item.dataset.id;
+    const text = () => item.querySelector(".rule-text").value;
+    const act = (a) => item.querySelector(`[data-act="${a}"]`);
+    if (act("approve")) act("approve").addEventListener("click", async () => {
+      if (await ruleUpdate(id, { correction: text(), status: "active" })) await loadRules();
+    });
+    if (act("save")) act("save").addEventListener("click", async (ev) => {
+      ev.target.textContent = "Saving…"; await ruleUpdate(id, { correction: text() });
+      ev.target.textContent = "Saved"; setTimeout(() => { ev.target.textContent = "Save edit"; }, 1500);
+    });
+    if (act("decline")) act("decline").addEventListener("click", async () => {
+      if (!confirm("Remove this rule? Libra will stop applying it.")) return;
+      if (await ruleUpdate(id, { status: "declined" })) await loadRules();
+    });
+  });
 }
 
 async function loadFunnel() {
