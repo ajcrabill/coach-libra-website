@@ -104,7 +104,7 @@ function renderOverview() {
     const costCell = `<td class="c soft" title="LLM spend attributed to this book (drafting, editing, reply handling)">${esc(r.cost || "$0")}</td>`;
     // Nudge only makes sense when the author is the one we're waiting on.
     const nudgeBtn = (r.court_key === "author" && r.author_email)
-      ? `<button class="link" data-nudge="${esc(r.author_email)}" data-ms="${r.manuscript_id || ""}" title="Send this author a warm re-engagement email now">nudge</button> · `
+      ? `<button class="link" data-nudge="${esc(r.author_email)}" data-ms="${r.manuscript_id || ""}" title="Draft a re-engagement email — it waits in Sentinel for you to review & send">nudge</button> · `
       : "";
     const manage = `<td class="c soft">` + nudgeBtn +
       (r.manuscript_id
@@ -445,16 +445,17 @@ async function doDeliver(msId, btn) {
 }
 
 async function doNudge(email, msId, btn) {
-  if (!confirm("Send a warm re-engagement email to this author now?")) return;
-  btn.disabled = true; btn.textContent = "nudging…";
+  if (!confirm("Create a re-engagement draft for this author? It'll wait in the Sentinel queue for you to review, edit, and send.")) return;
+  btn.disabled = true; btn.textContent = "drafting…";
   try {
     const payload = { email };
     if (msId) payload.manuscript_id = Number(msId);
     const res = await api("/admin/nudge", { method: "POST", body: JSON.stringify(payload) });
     const d = await res.json().catch(() => ({}));
-    if (!res.ok) { alert(d.detail || "Couldn't send the nudge."); btn.disabled = false; btn.textContent = "nudge"; return; }
-    if (d.message) alert(d.message);   // "Nudge sent." or held-for-review note
-    await loadOverview();
+    btn.disabled = false; btn.textContent = "nudge";
+    if (!res.ok) { alert(d.detail || "Couldn't create the draft."); return; }
+    alert(d.message || "Nudge draft created — review and send it from the Sentinel queue.");
+    await loadSentinel();   // refresh the holds so the new draft is there
   } catch (e) { btn.disabled = false; btn.textContent = "nudge"; }
 }
 
