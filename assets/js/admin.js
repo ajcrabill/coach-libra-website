@@ -102,7 +102,11 @@ function renderOverview() {
     const sinceCell = `<td class="c soft${stale ? " stale" : ""}" title="Time since the author last emailed or sent a submission">${esc(r.since_author || "—")}</td>`;
     const sentCell = `<td class="c soft" title="Time since we last emailed this author">${esc(r.since_sent || "—")}</td>`;
     const costCell = `<td class="c soft" title="LLM spend attributed to this book (drafting, editing, reply handling)">${esc(r.cost || "$0")}</td>`;
-    const manage = `<td class="c soft">` +
+    // Nudge only makes sense when the author is the one we're waiting on.
+    const nudgeBtn = (r.court_key === "author" && r.author_email)
+      ? `<button class="link" data-nudge="${esc(r.author_email)}" data-ms="${r.manuscript_id || ""}" title="Send this author a warm re-engagement email now">nudge</button> · `
+      : "";
+    const manage = `<td class="c soft">` + nudgeBtn +
       (r.manuscript_id
         ? `<button class="link danger" data-del-book="${r.manuscript_id}" data-title="${esc(r.title)}" title="Delete just this book">delete book</button> · `
         : "") +
@@ -124,6 +128,8 @@ function renderOverview() {
     b.addEventListener("click", () => deleteBook(b.dataset.delBook, b.dataset.title, b)));
   $("overview").querySelectorAll("button[data-purge]").forEach(b =>
     b.addEventListener("click", () => purgeAuthor(b.dataset.purge, b)));
+  $("overview").querySelectorAll("button[data-nudge]").forEach(b =>
+    b.addEventListener("click", () => doNudge(b.dataset.nudge, b.dataset.ms, b)));
 
   // needs-your-attention list (always full set, not filtered)
   const needs = OV.rows.filter(r => r.court_key === "YOU");
@@ -436,6 +442,20 @@ async function doDeliver(msId, btn) {
     if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.detail || "Couldn't deliver that."); btn.disabled = false; btn.textContent = "Deliver to author"; return; }
     await loadOverview();
   } catch (e) { btn.disabled = false; btn.textContent = "Deliver to author"; }
+}
+
+async function doNudge(email, msId, btn) {
+  if (!confirm("Send a warm re-engagement email to this author now?")) return;
+  btn.disabled = true; btn.textContent = "nudging…";
+  try {
+    const payload = { email };
+    if (msId) payload.manuscript_id = Number(msId);
+    const res = await api("/admin/nudge", { method: "POST", body: JSON.stringify(payload) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) { alert(d.detail || "Couldn't send the nudge."); btn.disabled = false; btn.textContent = "nudge"; return; }
+    if (d.message) alert(d.message);   // "Nudge sent." or held-for-review note
+    await loadOverview();
+  } catch (e) { btn.disabled = false; btn.textContent = "nudge"; }
 }
 
 // ---- actions ----
