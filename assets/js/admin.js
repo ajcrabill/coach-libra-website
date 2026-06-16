@@ -260,8 +260,10 @@ async function loadSentinel() {
         else {
           draft().value = r.draft || draft().value;
           const v = r.verdict || {};
-          verdict.textContent = v.block ? ("⚠ reviewer still flags: " + (v.issues || []).join("; "))
+          let msg = v.block ? ("⚠ reviewer still flags: " + (v.issues || []).join("; "))
             : "✓ reviewer is satisfied — your call to send.";
+          if (r.attachments && r.attachments.length) msg += "  📎 will attach: " + r.attachments.join(", ");
+          verdict.textContent = msg;
         }
       } catch (e) { verdict.textContent = "Something went wrong."; }
       b.disabled = false; b.textContent = "Rewrite";
