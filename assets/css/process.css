@@ -50,7 +50,8 @@
   .phase .no small{display:block;font-family:"Hanken Grotesk",sans-serif;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-top:.5em;font-weight:600}
   .phase h2{font-size:1.55rem;font-weight:480;margin-bottom:.4em}
   .phase .what{color:var(--ink-soft);font-size:1.06rem;margin-bottom:.7em}
-  .phase .you{font-size:1rem;color:var(--ink);margin-bottom:.7em}
+  .phase .what b{color:var(--oxblood);font-weight:600}
+  .phase .you{font-size:1.06rem;color:var(--ink);margin-bottom:.7em}
   .phase .you b{color:var(--oxblood);font-weight:600}
   .gate{background:linear-gradient(165deg,#faf4e9,#efe5d3);border:1px solid var(--line);border-left:3px solid var(--oxblood);border-radius:8px;padding:.85em 1em;font-size:1rem;color:var(--ink);display:flex;flex-direction:column;gap:.35em}
   .gate .q{font-family:"Fraunces",serif;font-style:italic;font-size:1.12rem;color:var(--oxblood-deep)}
