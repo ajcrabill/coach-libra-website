@@ -144,7 +144,46 @@ function renderOverview() {
     b.addEventListener("click", () => doDeliver(b.dataset.deliver, b)));
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations()]); }
+async function loadLearning() {
+  let d;
+  try { d = await (await api("/admin/learning")).json(); }
+  catch (e) { return; }
+  const on = !!d.review_mode;
+  $("learning-strip").innerHTML = on
+    ? `<span class="pill you">Review mode ON</span>`
+    : `<span class="pill">Review mode off</span>`;
+  $("learning-controls").innerHTML =
+    `<button id="rm-toggle" class="btn small">${on ? "Turn review mode OFF" : "Turn review mode ON"}</button>`
+    + ` <span class="soft">${on ? "Passing emails wait in Held above for you to review & send."
+                                : "Emails auto-send as usual."}</span>`;
+  $("rm-toggle").addEventListener("click", async () => {
+    const b = $("rm-toggle"); b.disabled = true; b.textContent = "…";
+    try {
+      await api("/admin/review-mode", { method: "POST", body: JSON.stringify({ on: !on }) });
+      await loadLearning();
+      if (!on) await loadSentinel();          // newly-held emails appear above
+    } catch (e) { await loadLearning(); }
+  });
+  const steps = d.steps || {}, keys = Object.keys(steps).sort();
+  if (!keys.length) {
+    $("learning-table").innerHTML = `<p class="soft">No approved sends yet — once you review & send a few, the edit trend per email type shows here.</p>`;
+    return;
+  }
+  const pct = (v) => v == null ? "—" : Math.round(v * 100) + "%";
+  const rows = keys.map(k => {
+    const s = steps[k];
+    const trend = s.converging === true ? `<span class="pill you">↓ converging</span>`
+      : s.converging === false ? `<span class="pill">→ not yet</span>` : "—";
+    return `<tr><td>${esc(k)}</td><td class="c">${s.count}</td><td class="c">${s.edited_pct}%</td>`
+      + `<td class="c soft">${pct(s.earlier_edit)}</td><td class="c">${pct(s.recent_edit)}</td><td class="c">${trend}</td></tr>`;
+  }).join("");
+  $("learning-table").innerHTML =
+    `<table class="grid"><thead><tr><th>Email type</th><th class="c">Sent</th><th class="c">You edited</th>`
+    + `<th class="c">Edit · earlier</th><th class="c">Edit · recent</th><th class="c">Trend</th></tr></thead>`
+    + `<tbody>${rows}</tbody></table>`;
+}
+
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning()]); }
 
 // ---- Sentinel: escalations awaiting AJ's reply ----
 async function loadEscalations() {
