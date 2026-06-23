@@ -335,8 +335,9 @@ async function loadSentinel() {
       const fixed = f.auto_fixed ? ` <span class="soft">[auto-fixed]</span>` : "";
       const label = f.feedback === "good_catch" ? `<span class="fb-label good">✓ good catch</span>`
         : f.feedback === "false_alarm" ? `<span class="fb-label bad">✗ false alarm</span>`
+        : f.feedback === "ignored" ? `<span class="soft fb-label">– ignored</span>`
         : f.auto_fixed ? `<span class="soft fb-label">handled</span>`
-        : `<span class="fb-actions"><button class="link" data-fb="good_catch" data-id="${f.id}">✓ good catch</button> · <button class="link" data-fb="false_alarm" data-id="${f.id}">✗ false alarm</button></span>`;
+        : `<span class="fb-actions"><button class="link" data-fb="good_catch" data-id="${f.id}">✓ good catch</button> · <button class="link" data-fb="false_alarm" data-id="${f.id}">✗ false alarm</button> · <button class="link" data-fb="ignored" data-id="${f.id}" title="Clear this alert without teaching Libra either way">– ignore</button></span>`;
       return `<li class="feed-row"><span>${dot} ${esc(f.summary || f.category || "")}${fixed}</span>${label}</li>`;
     }).join("") + `</ul>` : `<p class="soft">Nothing needs your review. 🎉</p>`;
     const toggle = handled.length
