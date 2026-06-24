@@ -277,6 +277,9 @@ async function loadSentinel() {
     `<div class="soft held-why">Held because: ${esc((h.issues || []).join("; ") || "reviewer flagged it")}</div>` +
     `<div class="soft">Subject: ${esc(h.subject)}</div>` +
     `<textarea class="held-draft" rows="8">${esc(h.draft)}</textarea>` +
+    ((h.can_attach || []).length ? `<div class="held-att soft">📎 Attach: ` +
+      h.can_attach.map(c => `<label class="att-opt"><input type="checkbox" data-att="${c.key}"${c.default ? " checked" : ""}/> ${esc(c.label)}</label>`).join("") +
+      `</div>` : "") +
     `<div class="held-verdict soft"></div>` +
     `<div class="held-actions"><input class="held-instr" placeholder="Rewrite instructions — e.g. 'name the book and drop the second question'" />` +
     `<button class="btn small" data-act="rewrite">Rewrite</button>` +
@@ -311,8 +314,9 @@ async function loadSentinel() {
       if (!confirm("Send this email to the author now?")) return;
       ev.target.disabled = true;
       try {
+        const attach = [...card.querySelectorAll("input[data-att]:checked")].map(i => i.dataset.att);
         const res = await api(`/admin/sentinel/holds/${id}/send`, { method: "POST",
-          body: JSON.stringify({ draft: draft().value }) });
+          body: JSON.stringify({ draft: draft().value, attach }) });
         if (!res.ok) { const e = await res.json().catch(() => ({})); alert(e.detail || "Couldn't send."); ev.target.disabled = false; return; }
         await loadSentinel();
       } catch (e) { ev.target.disabled = false; }

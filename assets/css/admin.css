@@ -48,6 +48,9 @@ table.grid td.stale{color:var(--oxblood);font-weight:600}
 .held-head{font-weight:600;margin-bottom:3px}
 .held-why{color:var(--oxblood)!important;font-size:.85rem;margin-bottom:4px}
 .held-draft{width:100%;box-sizing:border-box;font:inherit;font-size:.9rem;line-height:1.45;padding:9px;border:1px solid var(--line);border-radius:6px;margin:7px 0;resize:vertical;background:#fff}
+.held-att{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin:2px 0 6px;font-size:.85rem}
+.att-opt{display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.att-opt input{margin:0}
 .held-verdict{font-size:.85rem;margin:2px 0 6px;min-height:1em}
 .held-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .held-instr{flex:1 1 300px;font:inherit;padding:7px 9px;border:1px solid var(--line);border-radius:6px}
