@@ -181,6 +181,7 @@ function renderBook(pg) {
     $("progress-body").innerHTML = `<p class="next"><b>Next:</b> ${esc(next)}</p>${VOICE_LINE}`;
     $("deliverables-list").innerHTML = `<li><span class="muted">Your downloads will appear here as your book takes shape.</span></li>`;
     $("upload-help").textContent = "Add a document, PDF, or recording to help capture your voice.";
+    $("about-author-panel").hidden = true;
     return;
   }
   const b = BOOKS.find(x => x.id === CURRENT) || BOOKS[0];
@@ -191,6 +192,28 @@ function renderBook(pg) {
   renderSent();          // re-scope "what you've sent me" to the selected book
   $("upload-help").textContent = "Add a document, PDF, or recording for " +
     (b.title ? "“" + b.title + "”" : "this book") + ".";
+  $("about-author-panel").hidden = false;
+  renderAbout(b);
+}
+async function renderAbout(b) {
+  $("aa-book").textContent = b.title ? "“" + b.title + "”" : "this book";
+  $("aa-note").textContent = "";
+  let d;
+  try { d = await (await api("/me/books/" + b.id + "/about")).json(); }
+  catch (e) { return; }
+  $("aa-about").value = d.about_you || "";
+  $("aa-pronouns").value = d.pronouns || "";
+  $("btn-save-about").onclick = () => saveAbout(b.id);
+}
+async function saveAbout(id) {
+  const btn = $("btn-save-about"); btn.disabled = true; note("aa-note", "Saving…", true);
+  try {
+    const res = await api("/me/books/" + id + "/about", { method: "PUT",
+      body: JSON.stringify({ about_you: $("aa-about").value, pronouns: $("aa-pronouns").value }) });
+    if (!res.ok) throw new Error();
+    note("aa-note", "Saved — I'll use this for your About-the-Author page, and I won't ask you for it.", true);
+  } catch (e) { note("aa-note", "Couldn't save that — try again.", false); }
+  finally { btn.disabled = false; }
 }
 function renderRename(b) {
   const el = $("book-rename"); el.hidden = false;

@@ -54,6 +54,17 @@ bodyclass: portal-page
       <p id="link-note" class="note"></p>
     </div>
 
+    <div class="panel" id="about-author-panel" hidden>
+      <h2>About the Author</h2>
+      <p class="muted">A few lines for your About-the-Author page on <span id="aa-book">this book</span> — how you'd like to be credited, and what makes you credible on this topic. Optional, and yours to edit anytime; I'll also ask as we go.</p>
+      <label style="display:block;margin:10px 0 4px">Pronouns <span class="soft">— used across all your books; leave blank and I'll just use your name</span></label>
+      <input id="aa-pronouns" type="text" maxlength="60" placeholder="she/her · he/him · they/them · …" style="max-width:280px" />
+      <label style="display:block;margin:14px 0 4px">About you</label>
+      <textarea id="aa-about" rows="6" placeholder="e.g. Jane Smith is a pediatric nurse with two decades on the front lines of children's medicine…" style="width:100%;box-sizing:border-box"></textarea>
+      <div style="margin-top:10px"><button id="btn-save-about" class="btn">Save</button></div>
+      <p id="aa-note" class="note"></p>
+    </div>
+
     <!-- account-level -->
     <div class="acct-sep"></div>
     <div class="panel"><h2>How we work together</h2><div id="settings-body"></div></div>
