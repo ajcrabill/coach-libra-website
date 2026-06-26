@@ -206,11 +206,19 @@ async function loadPrefConfig() {
         `</select>`;
     let extra = "";
     if (dim.tunable) {
-      const rows = dim.options.map(o => intRow(o,
-        `<textarea class="pc-dir" data-dim="${dim.key}" data-opt="${o}" rows="2" ` +
-        `style="flex:1;min-width:300px" placeholder="Using Libra's built-in — type to override">` +
-        `${esc((dim.overrides || {})[o] || "")}</textarea>`)).join("");
-      extra = `<details style="margin:4px 0 0 4px"><summary class="muted">Tune intensities</summary>${rows}</details>`;
+      const custom = new Set(dim.customized || []);
+      const rows = dim.options.map(o => {
+        const cur = (dim.overrides || {})[o] || "";          // current text: override or built-in
+        const mark = custom.has(o) ? ` <span class="soft" style="font-size:11px">· edited</span>` : "";
+        return `<div style="display:flex;gap:8px;align-items:flex-start;margin:6px 0">` +
+          `<label style="min-width:140px;padding-top:4px" class="soft">${esc(o)}${mark}</label>` +
+          `<textarea class="pc-dir" data-dim="${dim.key}" data-opt="${o}" rows="3" ` +
+          `style="flex:1;min-width:300px" placeholder="(no built-in directive — leave blank to keep the default)">` +
+          `${esc(cur)}</textarea></div>`;
+      }).join("");
+      extra = `<details style="margin:4px 0 0 4px"><summary class="muted">Tune intensities</summary>` +
+        `<p class="soft" style="margin:6px 0 2px">Each box shows the current wording. Edit to re-tune; ` +
+        `clear a box to revert it to Libra's built-in.</p>${rows}</details>`;
     } else if (dim.key === "batch") {
       const rows = ["fewer", "normal", "more", "many"].map(w => intRow(w,
         `<input class="pc-count" data-word="${w}" type="number" min="1" max="9" ` +
