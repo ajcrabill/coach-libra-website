@@ -183,7 +183,71 @@ async function loadLearning() {
     + `<tbody>${rows}</tbody></table>`;
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning()]); }
+// ---- Author preference defaults & per-option intensities ----
+const PREF_LABELS = {
+  batch: "Questions at a time", complexity: "Question complexity", cadence: "Pace",
+  handholding: "Hand-holding", tone: "Tone", prompt_time: "Daily question time",
+  language: "Language",
+};
+async function loadPrefConfig() {
+  let d;
+  try { d = await (await api("/admin/pref-config")).json(); }
+  catch (e) { return; }
+  const dims = d.dimensions || [], counts = d.batch_counts || {};
+  const intRow = (label, control) =>
+    `<div style="display:flex;gap:8px;align-items:flex-start;margin:6px 0">` +
+    `<label style="min-width:96px;padding-top:4px" class="soft">${esc(label)}</label>${control}</div>`;
+  const blocks = dims.map(dim => {
+    const label = PREF_LABELS[dim.key] || dim.key;
+    const ctrl = dim.freeform
+      ? `<input class="pc-def" data-dim="${dim.key}" type="text" value="${esc(dim.default || "")}" style="max-width:200px" />`
+      : `<select class="pc-def" data-dim="${dim.key}">` +
+        dim.options.map(o => `<option value="${o}"${o === dim.default ? " selected" : ""}>${esc(o)}</option>`).join("") +
+        `</select>`;
+    let extra = "";
+    if (dim.tunable) {
+      const rows = dim.options.map(o => intRow(o,
+        `<textarea class="pc-dir" data-dim="${dim.key}" data-opt="${o}" rows="2" ` +
+        `style="flex:1;min-width:300px" placeholder="Using Libra's built-in — type to override">` +
+        `${esc((dim.overrides || {})[o] || "")}</textarea>`)).join("");
+      extra = `<details style="margin:4px 0 0 4px"><summary class="muted">Tune intensities</summary>${rows}</details>`;
+    } else if (dim.key === "batch") {
+      const rows = ["fewer", "normal", "more", "many"].map(w => intRow(w,
+        `<input class="pc-count" data-word="${w}" type="number" min="1" max="9" ` +
+        `value="${counts[w] ?? ""}" style="width:64px" />`)).join("");
+      extra = `<details style="margin:4px 0 0 4px"><summary class="muted">Questions per size</summary>${rows}</details>`;
+    }
+    return `<div style="margin:14px 0">` +
+      `<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">` +
+      `<span style="font-weight:600;min-width:160px">${esc(label)}</span>` +
+      `<span class="soft">default:</span> ${ctrl}</div>${extra}</div>`;
+  }).join("");
+  $("prefcfg").innerHTML = blocks;
+  $("prefcfg-strip").innerHTML = `<span class="pill">${dims.length} dials</span>`;
+  $("prefcfg-save").onclick = async () => {
+    const btn = $("prefcfg-save"), note = $("prefcfg-note");
+    btn.disabled = true; note.textContent = "Saving…";
+    const defaults = {}, directives = {}, batch_counts = {};
+    document.querySelectorAll("#prefcfg .pc-def").forEach(el => { defaults[el.dataset.dim] = el.value; });
+    document.querySelectorAll("#prefcfg .pc-dir").forEach(el => {
+      const v = el.value.trim(); if (!v) return;
+      (directives[el.dataset.dim] = directives[el.dataset.dim] || {})[el.dataset.opt] = v;
+    });
+    document.querySelectorAll("#prefcfg .pc-count").forEach(el => {
+      if (el.value) batch_counts[el.dataset.word] = Number(el.value);
+    });
+    try {
+      const res = await api("/admin/pref-config", { method: "POST",
+        body: JSON.stringify({ defaults, directives, batch_counts }) });
+      if (!res.ok) throw new Error();
+      note.textContent = "Saved — new authors get these defaults; intensity edits are live within a minute.";
+      await loadPrefConfig();
+    } catch (e) { note.textContent = "Couldn't save — try again."; }
+    finally { btn.disabled = false; }
+  };
+}
+
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig()]); }
 
 // ---- Sentinel: escalations awaiting AJ's reply ----
 async function loadEscalations() {
