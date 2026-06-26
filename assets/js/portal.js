@@ -350,25 +350,37 @@ async function loadSent() {
 }
 async function loadSettings() {
   const d = await (await api("/me/settings")).json();
-  const dials = [
-    ["tone", "My tone", { warm: "Warm", balanced: "Balanced", direct: "Direct" },
-     "How I sound when I write to you — warm and encouraging, an even balance, or direct and to the point."],
-    ["batch", "Questions at a time", { fewer: "Fewer", normal: "Normal", more: "More" },
-     "How much I ask at once. Fewer keeps each step light; more lets you cover ground faster when you're in a groove."],
-    ["complexity", "Depth", { simple: "Simple", normal: "Normal", complex: "In-depth" },
-     "How deep we go. Simple keeps things clear and plain; in-depth digs into nuance and detail."],
-    ["cadence", "Pace", { as_completed: "As I reply", daily: "One a day" },
-     "How often we move forward — as soon as you reply, or one calm step each day."],
-    ["prompt_time", "When to ask", { any: "Anytime", morning: "Mornings", evening: "Evenings" },
-     "If you've chosen one step a day, roughly when that question arrives — your morning or your evening."],
-    ["handholding", "How much help", { less: "Less", normal: "Normal", more: "More" },
-     "How much I guide you along the way — a lighter touch, or more reassurance and direction at each step."],
-  ];
-  $("settings-body").innerHTML = dials.map(([key, label, opts, desc]) =>
+  const opts = d.options || {};        // canonical option set + ORDER from the backend (never drifts)
+  // Author-facing labels + descriptions live here; the option SET comes from the API, so a new
+  // preference option (or a reorder) shows up automatically — title-cased if it has no label yet.
+  const LABELS = {
+    tone: { cheerful: "Cheerful", warm: "Warm", balanced: "Balanced", direct: "Direct", militant: "Militant" },
+    batch: { fewer: "Fewer", normal: "Normal", more: "More", many: "Many" },
+    complexity: { simple: "Simple", normal: "Normal", complex: "In-depth", expert: "Expert" },
+    cadence: { as_completed: "As I reply", daily: "One a day" },
+    prompt_time: { any: "Anytime", morning: "Mornings", evening: "Evenings" },
+    handholding: { less: "Less", normal: "Normal", more: "More" },
+  };
+  const META = {
+    tone: ["My tone", "How I sound when I write to you — anywhere from cheerful and celebratory, to warm, to balanced, to direct, to militant and fiery."],
+    batch: ["Questions at a time", "How much I ask at once. Fewer keeps each step light; more or many lets you cover ground faster when you're in a groove."],
+    complexity: ["Depth", "How deep we go — from simple and plain, to in-depth, to fully expert and rigorous."],
+    cadence: ["Pace", "How often we move forward — as soon as you reply, or one calm step each day."],
+    prompt_time: ["When to ask", "If you've chosen one step a day, roughly when that question arrives — your morning or your evening."],
+    handholding: ["How much help", "How much I guide you along the way — a lighter touch, or more reassurance and direction at each step."],
+  };
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ");
+  const ORDER = ["tone", "batch", "complexity", "cadence", "prompt_time", "handholding"];
+  const dials = ORDER.filter(k => (opts[k] || []).length).map(key => {
+    const [label, desc] = META[key] || [cap(key), ""];
+    const choices = opts[key].map(v => [v, (LABELS[key] || {})[v] || cap(v)]);
+    return [key, label, choices, desc];
+  });
+  $("settings-body").innerHTML = dials.map(([key, label, choices, desc]) =>
     `<div class="dial" data-dial="${key}"><div class="dial-row">` +
     `<button class="dial-title" data-toggle="${key}">${esc(label)}</button>` +
     `<span class="seg" data-key="${key}">` +
-    Object.entries(opts).map(([v, t]) =>
+    choices.map(([v, t]) =>
       `<button class="${d.settings[key]===v?'on':''}" data-key="${key}" data-val="${v}">${esc(t)}</button>`).join("") +
     `</span></div><div class="dial-desc"><div class="dd-inner"><p>${esc(desc)}</p></div></div></div>`).join("");
   $("settings-body").querySelectorAll("button[data-val]").forEach(b =>
