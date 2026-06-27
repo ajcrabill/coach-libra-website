@@ -38,16 +38,14 @@ bodyclass: portal-page
     </div>
 
     <div class="panel">
-      <details>
-        <summary style="cursor:pointer"><h2 style="display:inline-block;margin:0;vertical-align:middle">All projects</h2></summary>
-        <div class="ph-tools" style="margin:10px 0">
+      <div class="panel-head"><h2>All projects</h2>
+        <div class="ph-tools">
           <input id="ov-search" class="ov-search" type="search" placeholder="Search author, book, stage…" />
           <button id="abtn-refresh" class="btn small">Refresh</button>
-        </div>
-        <div id="tally" class="tally"></div>
-        <p class="muted ov-hint">Newest-approved first by default · click any column to sort</p>
-        <div id="overview" class="tablewrap"></div>
-      </details>
+        </div></div>
+      <div id="tally" class="tally"></div>
+      <p class="muted ov-hint">Newest-approved first by default · click any column to sort</p>
+      <div id="overview" class="tablewrap"></div>
     </div>
 
     <div class="panel">
@@ -135,11 +133,9 @@ bodyclass: portal-page
     </div>
 
     <div class="panel">
-      <details>
-        <summary style="cursor:pointer"><h2 style="display:inline-block;margin:0;vertical-align:middle">Circle — in-window roster</h2></summary>
-        <p class="muted">Authors currently inside their 3-month support window — how big the monthly Circle call is right now.</p>
-        <div id="circle"></div>
-      </details>
+      <h2>Circle — in-window roster</h2>
+      <p class="muted">Authors currently inside their 3-month support window — how big the monthly Circle call is right now.</p>
+      <div id="circle"></div>
     </div>
 
     <div class="panel">
@@ -258,3 +254,13 @@ bodyclass: portal-page
   </section>
 
 </main>
+
+<style>
+  /* Collapsible panels (state remembered per browser via localStorage). */
+  #admin-dashboard .panel h2 { cursor: pointer; user-select: none; }
+  #admin-dashboard .panel h2::before { content: "\25BE  "; opacity: .45; font-size: .8em; }
+  #admin-dashboard .panel.collapsed h2::before { content: "\25B8  "; }
+  #admin-dashboard .panel.collapsed > *:not(h2):not(.panel-head) { display: none; }
+  #admin-dashboard .panel.collapsed > .panel-head > *:not(h2) { display: none; }
+  #admin-dashboard .panel.collapsed > .panel-head { margin-bottom: 0; }
+</style>

@@ -870,7 +870,28 @@ async function loadAudit() {
     : `<p class="soft">No actions logged yet.</p>`;
 }
 
+// Make every dashboard panel collapsible (collapsed by default); remember each panel's open/closed
+// state per browser so the console comes back the way you left it.
+function setupCollapsiblePanels() {
+  const KEY = "cl_admin_panels";
+  let saved = {}; try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+  document.querySelectorAll("#admin-dashboard .panel").forEach(panel => {
+    const h2 = panel.querySelector("h2");
+    if (!h2 || panel.dataset.coll) return;
+    panel.dataset.coll = "1";
+    const key = h2.textContent.trim().slice(0, 50);
+    if (saved[key] !== "open") panel.classList.add("collapsed");          // collapsed by default
+    h2.addEventListener("click", () => {
+      panel.classList.toggle("collapsed");
+      let st = {}; try { st = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+      st[key] = panel.classList.contains("collapsed") ? "closed" : "open";
+      localStorage.setItem(KEY, JSON.stringify(st));
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  setupCollapsiblePanels();
   $("abtn-send").addEventListener("click", sendCode);
   $("abtn-verify").addEventListener("click", verify);
   $("acode").addEventListener("keydown", e => { if (e.key === "Enter") verify(); });
