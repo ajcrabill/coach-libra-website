@@ -428,6 +428,8 @@ async function loadSettings() {
     cadence: { as_completed: "As I reply", daily: "One a day" },
     prompt_time: { any: "Anytime", morning: "Mornings", evening: "Evenings" },
     handholding: { less: "Less", normal: "Normal", more: "More" },
+    submission_preferred_type: { any: "Any", voice_memo: "Voice memo", email: "Type in email",
+                                 attached_doc: "Attached doc", link_to_doc: "Doc link" },
   };
   const META = {
     tone: ["My tone", "How I sound when I write to you — anywhere from cheerful and celebratory, to warm, to balanced, to direct, to militant and fiery."],
@@ -436,9 +438,10 @@ async function loadSettings() {
     cadence: ["Pace", "How often we move forward — as soon as you reply, or one calm step each day."],
     prompt_time: ["When to ask", "If you've chosen one step a day, roughly when that question arrives — your morning or your evening."],
     handholding: ["How much help", "How much I guide you along the way — a lighter touch, or more reassurance and direction at each step."],
+    submission_preferred_type: ["How you share your work", "Your preferred way to send me your writing and answers — a voice memo, typing in email, an attached document, or a link to a doc. Pick one and I'll ask for it that way; leave it on Any and I'll use whatever's easiest in the moment."],
   };
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ");
-  const ORDER = ["tone", "batch", "complexity", "cadence", "prompt_time", "handholding"];
+  const ORDER = ["tone", "submission_preferred_type", "batch", "complexity", "cadence", "prompt_time", "handholding"];
   const dials = ORDER.filter(k => (opts[k] || []).length).map(key => {
     const [label, desc] = META[key] || [cap(key), ""];
     const choices = opts[key].map(v => [v, (LABELS[key] || {})[v] || cap(v)]);
