@@ -191,6 +191,70 @@ bodyclass: portal-page
       <p id="staff-note" class="note"></p>
       <div id="staff" class="tablewrap"></div>
     </div>
+
+    <div class="panel">
+      <h2>Settings</h2>
+      <p class="muted">Pricing, plans, model routing, tripwires, referral, segments, content. Edit the JSON and save. (Shopify stays the source of truth for actual charges.)</p>
+      <div class="form-row" style="margin-bottom:10px">
+        <select id="cfg-key">
+          <option value="pricing">Pricing</option>
+          <option value="plans">Plans / tiers</option>
+          <option value="models">Model routing</option>
+          <option value="tripwires">Tripwires (spend caps)</option>
+          <option value="referral">Referral program</option>
+          <option value="segments">Segments</option>
+          <option value="content">Content suite</option>
+        </select>
+        <button id="cfg-load" class="btn small">Load</button>
+        <button id="cfg-save" class="btn small">Save</button>
+      </div>
+      <textarea id="cfg-json" rows="10" style="width:100%;box-sizing:border-box;font-family:monospace;font-size:.85rem"></textarea>
+      <p id="cfg-note" class="note"></p>
+    </div>
+
+    <div class="panel">
+      <h2>Circle — schedule &amp; message</h2>
+      <p class="muted">Set the next monthly call, and message everyone currently in their support window.</p>
+      <div class="form-row" style="margin-bottom:10px">
+        <input id="circ-date" type="text" placeholder="next call (e.g. 2026-07-01 10am CT)" />
+        <input id="circ-url" type="text" placeholder="join URL" />
+        <button id="circ-sched" class="btn small">Save schedule</button>
+      </div>
+      <input id="circ-subj" type="text" placeholder="message subject" style="width:100%;box-sizing:border-box;margin-bottom:8px" />
+      <textarea id="circ-body" rows="4" placeholder="message to the in-window roster…" style="width:100%;box-sizing:border-box"></textarea>
+      <div style="margin-top:8px"><button id="circ-send" class="btn small">Send to roster</button></div>
+      <p id="circ-note" class="note"></p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Institutional deals</h2><button id="abtn-deals" class="btn small">Refresh</button></div>
+      <p class="muted">Pipeline of institutional seat-block deals.</p>
+      <div class="form-row" style="margin-bottom:10px">
+        <input id="deal-org" type="text" placeholder="organization" />
+        <input id="deal-seats" type="number" placeholder="seats" style="width:90px" />
+        <input id="deal-value" type="number" placeholder="value $" style="width:110px" />
+        <button id="deal-add" class="btn small">Add</button>
+      </div>
+      <p id="deal-note" class="note"></p>
+      <div id="deals" class="tablewrap"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Issue a refund</h2>
+      <p class="muted">Record a refund on our side (the money-back itself happens in Shopify / the bank).</p>
+      <div class="form-row">
+        <input id="rf-order" type="number" placeholder="order id" style="width:120px" />
+        <input id="rf-amount" type="number" placeholder="refund $ (blank = full)" style="width:170px" />
+        <button id="rf-btn" class="btn small">Refund</button>
+      </div>
+      <p id="rf-note" class="note"></p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Audit log</h2><button id="abtn-audit" class="btn small">Refresh</button></div>
+      <p class="muted">Every staff action — who did what, and when.</p>
+      <div id="audit" class="tablewrap"></div>
+    </div>
   </section>
 
 </main>

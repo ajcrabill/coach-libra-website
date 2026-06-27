@@ -255,7 +255,7 @@ async function loadPrefConfig() {
   };
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadStaff()]); }
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadStaff(), loadDeals(), loadAudit()]); }
 
 // ---- Sentinel: escalations awaiting AJ's reply ----
 async function loadEscalations() {
@@ -630,7 +630,30 @@ async function viewCohort(id) {
     `<h3 class="sub">${esc(dash.name || "")} — ${dash.seats_redeemed}/${dash.seats_total} seats used, ${dash.stalled} stalled</h3>` +
     `<p class="muted">Buyer link (anonymized — safe to share with the institution): <code>${esc(d.buyer_link || "")}</code></p>` +
     `<div class="tablewrap"><table><thead><tr><th>Member</th><th>Stage</th><th>Last activity</th><th>Health</th></tr></thead><tbody>${rows}</tbody></table></div>` +
-    `<h4 class="sub">Seat codes</h4><div class="tablewrap"><table><thead><tr><th>Seat</th><th>Code</th><th>Status</th></tr></thead><tbody>${codeRows}</tbody></table></div>`;
+    `<h4 class="sub">Seat codes</h4><div class="tablewrap"><table><thead><tr><th>Seat</th><th>Code</th><th>Status</th></tr></thead><tbody>${codeRows}</tbody></table></div>` +
+    `<h4 class="sub">Team admins</h4>` +
+    `<div class="form-row" style="margin-bottom:8px"><input id="ca-email" type="email" placeholder="add admin email" /><button class="btn small" id="ca-add">Add</button></div>` +
+    `<div id="cohort-admins"></div>`;
+  $("ca-add").addEventListener("click", () => addCohortAdmin(id));
+  loadCohortAdmins(id);
+}
+async function loadCohortAdmins(id) {
+  let res; try { res = await api("/admin/cohorts/" + Number(id) + "/admins"); } catch (e) { return; }
+  if (!res.ok) { $("cohort-admins").innerHTML = ""; return; }
+  const admins = (await res.json()).admins || [];
+  $("cohort-admins").innerHTML = admins.length
+    ? `<ul class="needs">` + admins.map(a => `<li><span>${esc(a.email)}</span> <button class="link" data-ca="${a.id}">remove</button></li>`).join("") + `</ul>`
+    : `<p class="soft">No extra admins (the original buyer always has the link).</p>`;
+  $("cohort-admins").querySelectorAll("button[data-ca]").forEach(b => b.addEventListener("click", async () => {
+    try { await api("/admin/cohorts/" + Number(id) + "/admins/" + b.dataset.ca, { method: "DELETE" }); } catch (e) {}
+    loadCohortAdmins(id);
+  }));
+}
+async function addCohortAdmin(id) {
+  const email = $("ca-email").value.trim();
+  if (!email) { $("ca-email").focus(); return; }
+  try { await api("/admin/cohorts/" + Number(id) + "/admins", { method: "POST", body: JSON.stringify({ email }) }); $("ca-email").value = ""; } catch (e) {}
+  loadCohortAdmins(id);
 }
 
 // ---- Circle in-window roster ----
@@ -760,6 +783,93 @@ async function addStaff() {
   } catch (e) { note("staff-note", "Couldn't add that.", false); }
 }
 
+// ---- settings (generic config) ----
+async function loadConfig() {
+  const key = $("cfg-key").value;
+  let res; try { res = await api("/admin/config/" + key); } catch (e) { return; }
+  if (!res.ok) { $("cfg-json").value = ""; note("cfg-note", "No access to " + key + ".", false); return; }
+  const d = await res.json();
+  $("cfg-json").value = JSON.stringify(d.value, null, 2);
+  note("cfg-note", "");
+}
+async function saveConfig() {
+  const key = $("cfg-key").value;
+  let value; try { value = JSON.parse($("cfg-json").value); } catch (e) { note("cfg-note", "Invalid JSON.", false); return; }
+  try {
+    const res = await api("/admin/config/" + key, { method: "POST", body: JSON.stringify({ value }) });
+    if (res.ok) note("cfg-note", "Saved.", true);
+    else { const e = await res.json().catch(() => ({})); note("cfg-note", e.detail || "Couldn't save.", false); }
+  } catch (e) { note("cfg-note", "Couldn't save.", false); }
+}
+// ---- circle ops ----
+async function scheduleCircle() {
+  try {
+    const res = await api("/admin/circle/schedule", { method: "POST", body: JSON.stringify({ date: $("circ-date").value, join_url: $("circ-url").value }) });
+    note("circ-note", res.ok ? "Schedule saved." : "Couldn't save.", res.ok);
+  } catch (e) { note("circ-note", "Couldn't save.", false); }
+}
+async function messageCircle() {
+  const subject = $("circ-subj").value.trim(), body = $("circ-body").value.trim();
+  if (!subject || !body) { note("circ-note", "Subject and body required.", false); return; }
+  if (!confirm("Send this to everyone currently in their Circle window?")) return;
+  try {
+    const res = await api("/admin/circle/message", { method: "POST", body: JSON.stringify({ subject, body }) });
+    if (res.ok) { const d = await res.json(); note("circ-note", "Sent to " + d.sent + ".", true); $("circ-subj").value = ""; $("circ-body").value = ""; }
+    else note("circ-note", "Couldn't send.", false);
+  } catch (e) { note("circ-note", "Couldn't send.", false); }
+}
+// ---- institutional deals ----
+async function loadDeals() {
+  let res; try { res = await api("/admin/deals"); } catch (e) { return; }
+  if (!res.ok) { $("deals").innerHTML = `<p class="soft">No access.</p>`; return; }
+  const deals = (await res.json()).deals || [];
+  $("deals").innerHTML = deals.length
+    ? `<table><thead><tr><th>Org</th><th>Contact</th><th>Seats</th><th>Value</th><th>Stage</th></tr></thead><tbody>` +
+      deals.map(d => `<tr><td>${esc(d.org)}</td><td class="soft">${esc(d.contact_email || "")}</td><td>${d.seats}</td>` +
+        `<td>$${Math.round((d.value_cents || 0) / 100).toLocaleString()}</td>` +
+        `<td><select data-deal="${d.id}" data-org="${esc(d.org)}">` +
+        ["prospect", "proposal", "won", "lost"].map(s => `<option ${s === d.stage ? "selected" : ""}>${s}</option>`).join("") +
+        `</select></td></tr>`).join("") + `</tbody></table>`
+    : `<p class="soft">No deals yet.</p>`;
+  $("deals").querySelectorAll("select[data-deal]").forEach(sel => sel.addEventListener("change", () =>
+    api("/admin/deals/" + sel.dataset.deal, { method: "POST", body: JSON.stringify({ org: sel.dataset.org, stage: sel.value }) }).then(loadDeals)));
+}
+async function addDeal() {
+  const org = $("deal-org").value.trim();
+  if (!org) { $("deal-org").focus(); return; }
+  const seats = Number($("deal-seats").value || 0), value_cents = Math.round(Number($("deal-value").value || 0) * 100);
+  try {
+    const res = await api("/admin/deals", { method: "POST", body: JSON.stringify({ org, seats, value_cents }) });
+    if (res.ok) { $("deal-org").value = ""; $("deal-seats").value = ""; $("deal-value").value = ""; note("deal-note", "Added.", true); await loadDeals(); }
+    else note("deal-note", "Couldn't add.", false);
+  } catch (e) { note("deal-note", "Couldn't add.", false); }
+}
+// ---- refund ----
+async function refundOrder() {
+  const id = Number($("rf-order").value || 0);
+  if (!id) { $("rf-order").focus(); return; }
+  if (!confirm("Record a refund on order " + id + "?")) return;
+  const amt = $("rf-amount").value.trim();
+  const body = { order_id: id };
+  if (amt) body.amount_cents = Math.round(Number(amt) * 100);
+  try {
+    const d = await (await api("/admin/billing/refund", { method: "POST", body: JSON.stringify(body) })).json();
+    if (d.ok) { note("rf-note", "Refunded — order now " + d.payment_status + ".", true); loadFinance(); }
+    else note("rf-note", d.error || "Couldn't refund.", false);
+  } catch (e) { note("rf-note", "Couldn't refund.", false); }
+}
+// ---- audit log ----
+async function loadAudit() {
+  let res; try { res = await api("/admin/audit"); } catch (e) { return; }
+  if (!res.ok) { $("audit").innerHTML = `<p class="soft">No audit access.</p>`; return; }
+  const ev = (await res.json()).events || [];
+  $("audit").innerHTML = ev.length
+    ? `<table><thead><tr><th>When</th><th>Who</th><th>Action</th><th>Detail</th></tr></thead><tbody>` +
+      ev.map(e => `<tr><td class="soft">${esc((e.at || "").replace("T", " ").slice(0, 16))}</td><td>${esc(e.actor || "")}</td><td>${esc(e.kind || "")}</td><td>${esc(e.detail || "")}</td></tr>`).join("") +
+      `</tbody></table>`
+    : `<p class="soft">No actions logged yet.</p>`;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   $("abtn-send").addEventListener("click", sendCode);
   $("abtn-verify").addEventListener("click", verify);
@@ -779,6 +889,15 @@ document.addEventListener("DOMContentLoaded", () => {
   $("abtn-finance").addEventListener("click", () => loadFinance());
   $("abtn-staff").addEventListener("click", () => loadStaff());
   $("st-add").addEventListener("click", addStaff);
+  $("cfg-load").addEventListener("click", loadConfig);
+  $("cfg-save").addEventListener("click", saveConfig);
+  $("cfg-key").addEventListener("change", loadConfig);
+  $("circ-sched").addEventListener("click", scheduleCircle);
+  $("circ-send").addEventListener("click", messageCircle);
+  $("abtn-deals").addEventListener("click", () => loadDeals());
+  $("deal-add").addEventListener("click", addDeal);
+  $("rf-btn").addEventListener("click", refundOrder);
+  $("abtn-audit").addEventListener("click", () => loadAudit());
   if (token()) { loadAll().then(() => show("dashboard")).catch(() => show("signin")); }
   else show("signin");
 });
