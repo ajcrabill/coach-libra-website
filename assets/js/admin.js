@@ -650,10 +650,11 @@ async function loadVouchers() {
   let d; try { d = await (await api("/admin/billing/vouchers")).json(); } catch (e) { return; }
   const vs = d.vouchers || [];
   $("vouchers").innerHTML = vs.length
-    ? `<table><thead><tr><th>Code</th><th>Type</th><th>Status</th><th>Left</th><th>Used</th><th></th></tr></thead><tbody>` +
+    ? `<table><thead><tr><th>Code</th><th>Type</th><th>Status</th><th>Left</th><th>Used</th><th>Created by</th><th></th></tr></thead><tbody>` +
       vs.map(v =>
         `<tr><td><code>${esc(v.code)}</code></td><td>${esc(v.vtype)}</td><td>${esc(v.status)}</td>` +
         `<td>${v.uses_remaining == null ? "∞" : v.uses_remaining}</td><td>${v.redemptions}</td>` +
+        `<td class="soft">${esc(v.created_by || "system")}</td>` +
         `<td>${v.status === "active" ? `<button class="link" data-void="${v.id}">void</button>` : ""}</td></tr>`).join("") +
       `</tbody></table>`
     : `<p class="soft">No vouchers yet.</p>`;
@@ -711,7 +712,7 @@ async function loadFinance() {
 async function loadStaff() {
   let res; try { res = await api("/admin/staff"); } catch (e) { return; }
   if (!res.ok) { $("staff").innerHTML = `<p class="soft">Owner-only — you don't have access to staff management.</p>`; return; }
-  const d = await res.json(), staff = d.staff || [], roles = d.assignable_roles || [];
+  const d = await res.json(), staff = d.staff || [], roles = d.assignable_roles || [], rolesInfo = d.roles_info || [];
   $("staff").innerHTML = (staff.length
     ? `<table><thead><tr><th>Email</th><th>Roles</th><th>Status</th><th></th></tr></thead><tbody>` +
       staff.map(st => `<tr><td>${esc(st.email)}</td>` +
@@ -721,7 +722,15 @@ async function loadStaff() {
         (st.status === "active" ? `<button class="link" data-deact="${st.id}">deactivate</button>` : `<button class="link" data-act="${st.id}">activate</button>`) +
         `</td></tr>`).join("") + `</tbody></table>`
     : `<p class="soft">No staff yet.</p>`) +
-    `<p class="muted">Assignable roles: ${roles.map(esc).join(", ")}</p>`;
+    (rolesInfo.length
+      ? `<h3 class="sub" style="margin-top:18px">What each role can do</h3>` + rolesInfo.map(r =>
+          `<details style="margin:6px 0;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08)">` +
+          `<summary style="cursor:pointer"><b>${esc(r.label)}</b> <span class="soft">(${esc(r.role)})</span></summary>` +
+          `<p class="muted" style="margin:6px 0">${esc(r.description)}</p>` +
+          `<p style="margin:6px 0"><b>Can:</b> ${(r.can || []).map(esc).join(", ")}</p>` +
+          (r.is_owner ? "" : `<p class="soft" style="margin:6px 0"><b>Can't:</b> manage staff &amp; roles (owner-only), or anything not listed.</p>`) +
+          `</details>`).join("")
+      : `<p class="muted">Assignable roles: ${roles.map(esc).join(", ")}</p>`);
   $("staff").querySelectorAll("button[data-save-roles]").forEach(b => b.addEventListener("click", () => {
     const inp = $("staff").querySelector(`.st-roles-edit[data-id="${b.dataset.saveRoles}"]`);
     staffApi("PUT", `/admin/staff/${b.dataset.saveRoles}/roles`, { roles: inp.value.split(",").map(x => x.trim()).filter(Boolean) });
