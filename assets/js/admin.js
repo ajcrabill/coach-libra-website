@@ -255,7 +255,7 @@ async function loadPrefConfig() {
   };
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadStaff(), loadDeals(), loadAudit(), loadSecretsStatus()]); }
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadStaff(), loadDeals(), loadAudit(), loadSecretsStatus(), loadCosts(), loadExemplars()]); }
 
 // ---- Sentinel: escalations awaiting AJ's reply ----
 async function loadEscalations() {
@@ -808,6 +808,45 @@ async function saveConfig() {
     else { const e = await res.json().catch(() => ({})); note("cfg-note", e.detail || "Couldn't save.", false); }
   } catch (e) { note("cfg-note", "Couldn't save.", false); }
 }
+async function loadCosts() {
+  const days = ($("cost-days") && $("cost-days").value) || 30;
+  let res; try { res = await api("/admin/costs?days=" + days); } catch (e) { return; }
+  if (!res.ok) { $("cost-body").innerHTML = `<p class="soft">No finance access.</p>`; return; }
+  const d = await res.json();
+  const usd = n => "$" + (Number(n) || 0).toFixed(2);
+  $("cost-strip").innerHTML =
+    `<span class="pill">${usd(d.total_usd)} total</span>` +
+    `<span class="pill">${usd(d.attributed_usd)} per-book</span>` +
+    `<span class="pill">${usd(d.shared_usd)} shared</span>` +
+    `<span class="pill">${d.days}d</span>`;
+  const arr = d.by_day || [];
+  const maxd = Math.max(0.0001, ...arr.map(x => x.usd));
+  const bars = arr.map(x =>
+    `<div class="cbar" title="${x.date}: ${usd(x.usd)}"><span style="height:${Math.round(100 * x.usd / maxd)}%"></span></div>`).join("");
+  const tbl = (rows, head) => rows ? `<table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>` : `<p class="soft">—</p>`;
+  const byModel = tbl((d.by_model || []).map(x => `<tr><td>${esc(x.model)}</td><td>${usd(x.usd)}</td></tr>`).join(""), "<th>Model</th><th>Cost</th>");
+  const byCall = tbl((d.by_call_type || []).map(x => `<tr><td>${esc(x.call_type)}</td><td>${usd(x.usd)}</td></tr>`).join(""), "<th>Call type</th><th>Cost</th>");
+  const byBook = (d.by_book || []).length
+    ? tbl(d.by_book.map(x => `<tr><td>#${x.manuscript_id} ${esc(x.title || "")} <span class="soft">${esc(x.author || "")}</span></td><td>${usd(x.usd)}</td></tr>`).join(""), "<th>Book</th><th>Cost</th>")
+    : `<p class="soft">No per-book costs in this window.</p>`;
+  $("cost-body").innerHTML =
+    `<div class="cchart">${bars}</div>` +
+    `<div class="cgrid"><div><h4 class="sub">By model</h4>${byModel}</div>` +
+    `<div><h4 class="sub">By call type</h4>${byCall}</div></div>` +
+    `<h4 class="sub">Top books</h4>${byBook}`;
+}
+async function loadExemplars() {
+  let res; try { res = await api("/admin/exemplars"); } catch (e) { return; }
+  if (!res.ok) { $("exemplars").innerHTML = `<p class="soft">No access.</p>`; return; }
+  const steps = (await res.json()).steps || [];
+  $("exemplars").innerHTML = steps.map(s => {
+    const badge = s.source === "promoted" ? `<span class="pill you">promoted</span>`
+      : (s.source === "seed" ? `<span class="pill">seed</span>` : `<span class="pill">none</span>`);
+    const body = s.has ? `<pre class="exemplar-body">${esc(s.body)}</pre>`
+      : `<p class="soft">No exemplar yet — Libra writes this one fresh each time.</p>`;
+    return `<details><summary><b>${esc(s.step)}</b> ${badge}${s.subject ? ` <span class="soft">· ${esc(s.subject)}</span>` : ""}</summary>${body}</details>`;
+  }).join("");
+}
 async function loadSecretsStatus() {
   let res; try { res = await api("/admin/secrets-status"); } catch (e) { return; }
   if (!res.ok) { $("secrets-status").innerHTML = `<p class="soft">No access.</p>`; return; }
@@ -966,6 +1005,8 @@ document.addEventListener("DOMContentLoaded", () => {
   $("deal-add").addEventListener("click", addDeal);
   $("rf-btn").addEventListener("click", refundOrder);
   $("abtn-audit").addEventListener("click", () => loadAudit());
+  $("cost-days").addEventListener("change", loadCosts);
+  $("abtn-exemplars").addEventListener("click", () => loadExemplars());
   if (token()) { loadAll().then(() => show("dashboard")).catch(() => show("signin")); }
   else show("signin");
 });

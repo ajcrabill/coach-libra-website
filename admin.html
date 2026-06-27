@@ -190,6 +190,14 @@ bodyclass: portal-page
     </div>
 
     <div class="panel">
+      <div class="panel-head"><h2>Ongoing costs</h2>
+        <select id="cost-days"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option></select></div>
+      <p class="muted">What it costs to run Libra (LLM spend). “Per-book” is tied to a specific manuscript; “shared” is system calls (nudges, parsing).</p>
+      <div id="cost-strip" class="tally"></div>
+      <div id="cost-body"></div>
+    </div>
+
+    <div class="panel">
       <h2>Issue a refund</h2>
       <p class="muted">Record a refund on our side (the money-back itself happens in Shopify / the bank).</p>
       <div class="form-row">
@@ -210,6 +218,12 @@ bodyclass: portal-page
       <div id="sentinel-feed"></div>
       <h3 class="sub">Learned rules</h3>
       <div id="sentinel-rules"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Email exemplars</h2><button id="abtn-exemplars" class="btn small">Refresh</button></div>
+      <p class="muted">The gold-standard email each author touchpoint is modeled on. Promote a great sent email by replying <code>exemplar: &lt;step&gt;</code> as an admin.</p>
+      <div id="exemplars"></div>
     </div>
 
     <div class="panel">
@@ -293,4 +307,14 @@ bodyclass: portal-page
   #admin-dashboard .panel.collapsed > *:not(h2):not(.panel-head) { display: none; }
   #admin-dashboard .panel.collapsed > .panel-head > *:not(h2) { display: none; }
   #admin-dashboard .panel.collapsed > .panel-head { margin-bottom: 0; }
+  /* Ongoing-costs panel */
+  .cchart { display: flex; align-items: flex-end; gap: 2px; height: 60px; margin: 6px 0 16px; }
+  .cchart .cbar { flex: 1; display: flex; align-items: flex-end; background: rgba(189,147,71,.08); }
+  .cchart .cbar > span { display: block; width: 100%; background: var(--gold-soft, #bd9347); min-height: 1px; }
+  .cgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 640px) { .cgrid { grid-template-columns: 1fr; } }
+  /* Email-exemplars panel */
+  .exemplar-body { white-space: pre-wrap; font-size: .85rem; background: rgba(255,255,255,.03);
+                   padding: 12px; border-radius: 8px; margin: 8px 0 0; max-height: 380px; overflow: auto; }
+  #exemplars details { margin-bottom: 8px; } #exemplars summary { cursor: pointer; }
 </style>
