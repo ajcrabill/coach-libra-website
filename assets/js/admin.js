@@ -876,9 +876,13 @@ async function loadAudit() {
 const PANEL_KEY = "cl_admin_panels";
 let panelPrefs = {};
 
+const DEFAULT_OPEN = new Set(["Needs your attention"]);   // the action hub starts expanded
+
 function applyPanelState() {
   document.querySelectorAll("#admin-dashboard .panel[data-key]").forEach(panel => {
-    panel.classList.toggle("collapsed", panelPrefs[panel.dataset.key] !== "open");   // default collapsed
+    const saved = panelPrefs[panel.dataset.key];
+    const open = saved ? saved === "open" : DEFAULT_OPEN.has(panel.dataset.key);
+    panel.classList.toggle("collapsed", !open);          // default collapsed, except the action hub
   });
 }
 

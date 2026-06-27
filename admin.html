@@ -32,6 +32,21 @@ bodyclass: portal-page
       <button id="abtn-signout" class="link">sign out</button>
     </div>
 
+    <!-- ===================== TODAY ===================== -->
+    <h2 class="dash-section">Today</h2>
+
+    <div class="panel">
+      <h2>Needs your attention</h2>
+      <p class="muted">Everything waiting on you, in one place.</p>
+      <div id="sentinel-strip" class="tally"></div>
+      <h3 class="sub">Ready to deliver &amp; in your court</h3>
+      <div id="needs"></div>
+      <h3 class="sub">Awaiting your reply</h3>
+      <div id="sentinel-escalations"></div>
+      <h3 class="sub">Held emails</h3>
+      <div id="sentinel-held"></div>
+    </div>
+
     <div class="panel">
       <h2>Funnel</h2>
       <div id="funnel"></div>
@@ -48,31 +63,8 @@ bodyclass: portal-page
       <div id="overview" class="tablewrap"></div>
     </div>
 
-    <div class="panel">
-      <h2>Needs your attention</h2>
-      <div id="needs"></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>Sentinel — watchdog</h2>
-        <div id="sentinel-strip" class="tally"></div></div>
-      <h3 class="sub">Awaiting your reply</h3>
-      <div id="sentinel-escalations"></div>
-      <h3 class="sub">Held emails</h3>
-      <div id="sentinel-held"></div>
-      <details id="sentinel-feed-wrap"><summary class="muted">Recent alerts — confirm a good catch to teach Libra</summary>
-        <div id="sentinel-feed"></div></details>
-      <details id="sentinel-rules-wrap"><summary class="muted">Learned rules</summary>
-        <div id="sentinel-rules"></div></details>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>Libra is learning</h2>
-        <div id="learning-strip" class="tally"></div></div>
-      <p class="muted">Turn on review mode to route passing author emails into the Held queue above — each one you review &amp; send teaches Libra your voice. Watch the edits shrink below, then flip it off once a type stops needing changes.</p>
-      <div id="learning-controls" class="form-row" style="margin-bottom:16px"></div>
-      <div id="learning-table" class="tablewrap"></div>
-    </div>
+    <!-- ===================== AUTHORS ===================== -->
+    <h2 class="dash-section">Authors</h2>
 
     <div class="panel">
       <h2>Waitlist</h2>
@@ -124,6 +116,9 @@ bodyclass: portal-page
       <p id="prefcfg-note" class="note"></p>
     </div>
 
+    <!-- ===================== PROGRAMS ===================== -->
+    <h2 class="dash-section">Programs</h2>
+
     <div class="panel">
       <div class="panel-head"><h2>Cohorts — institutional teams</h2>
         <button id="abtn-cohorts" class="btn small">Refresh</button></div>
@@ -136,6 +131,20 @@ bodyclass: portal-page
       <h2>Circle — in-window roster</h2>
       <p class="muted">Authors currently inside their 3-month support window — how big the monthly Circle call is right now.</p>
       <div id="circle"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Circle — schedule &amp; message</h2>
+      <p class="muted">Set the next monthly call, and message everyone currently in their support window.</p>
+      <div class="form-row" style="margin-bottom:10px">
+        <input id="circ-date" type="text" placeholder="next call (e.g. 2026-07-01 10am CT)" />
+        <input id="circ-url" type="text" placeholder="join URL" />
+        <button id="circ-sched" class="btn small">Save schedule</button>
+      </div>
+      <input id="circ-subj" type="text" placeholder="message subject" style="width:100%;box-sizing:border-box;margin-bottom:8px" />
+      <textarea id="circ-body" rows="4" placeholder="message to the in-window roster…" style="width:100%;box-sizing:border-box"></textarea>
+      <div style="margin-top:8px"><button id="circ-send" class="btn small">Send to roster</button></div>
+      <p id="circ-note" class="note"></p>
     </div>
 
     <div class="panel">
@@ -157,14 +166,20 @@ bodyclass: portal-page
     </div>
 
     <div class="panel">
-      <h2>Manuscript timeline</h2>
-      <p class="muted">The full state and event history for one manuscript — what happened, and when.</p>
-      <div class="form-row" style="margin-bottom:12px">
-        <input id="tl-id" type="number" placeholder="manuscript id" />
-        <button id="tl-btn" class="btn small">Load timeline</button>
+      <div class="panel-head"><h2>Institutional deals</h2><button id="abtn-deals" class="btn small">Refresh</button></div>
+      <p class="muted">Pipeline of institutional seat-block deals.</p>
+      <div class="form-row" style="margin-bottom:10px">
+        <input id="deal-org" type="text" placeholder="organization" />
+        <input id="deal-seats" type="number" placeholder="seats" style="width:90px" />
+        <input id="deal-value" type="number" placeholder="value $" style="width:110px" />
+        <button id="deal-add" class="btn small">Add</button>
       </div>
-      <div id="timeline"></div>
+      <p id="deal-note" class="note"></p>
+      <div id="deals" class="tablewrap"></div>
     </div>
+
+    <!-- ===================== MONEY ===================== -->
+    <h2 class="dash-section">Money</h2>
 
     <div class="panel">
       <div class="panel-head"><h2>Finance</h2>
@@ -172,6 +187,47 @@ bodyclass: portal-page
       <p class="muted">Revenue billed vs collected, and recent orders. (Empty until billing goes live.)</p>
       <div id="finance-strip" class="tally"></div>
       <div id="finance" class="tablewrap"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Issue a refund</h2>
+      <p class="muted">Record a refund on our side (the money-back itself happens in Shopify / the bank).</p>
+      <div class="form-row">
+        <input id="rf-order" type="number" placeholder="order id" style="width:120px" />
+        <input id="rf-amount" type="number" placeholder="refund $ (blank = full)" style="width:170px" />
+        <button id="rf-btn" class="btn small">Refund</button>
+      </div>
+      <p id="rf-note" class="note"></p>
+    </div>
+
+    <!-- ===================== SYSTEM ===================== -->
+    <h2 class="dash-section">System</h2>
+
+    <div class="panel">
+      <h2>Sentinel — alerts &amp; learned rules</h2>
+      <p class="muted">Recent watchdog alerts (confirm a good catch to teach Libra) and the rules it's learned. The action items moved up to “Needs your attention.”</p>
+      <h3 class="sub">Recent alerts</h3>
+      <div id="sentinel-feed"></div>
+      <h3 class="sub">Learned rules</h3>
+      <div id="sentinel-rules"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Libra is learning</h2>
+        <div id="learning-strip" class="tally"></div></div>
+      <p class="muted">Turn on review mode to route passing author emails into the Held queue (under “Needs your attention”) — each one you review &amp; send teaches Libra your voice. Watch the edits shrink below, then flip it off once a type stops needing changes.</p>
+      <div id="learning-controls" class="form-row" style="margin-bottom:16px"></div>
+      <div id="learning-table" class="tablewrap"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Manuscript timeline</h2>
+      <p class="muted">The full state and event history for one manuscript — what happened, and when.</p>
+      <div class="form-row" style="margin-bottom:12px">
+        <input id="tl-id" type="number" placeholder="manuscript id" />
+        <button id="tl-btn" class="btn small">Load timeline</button>
+      </div>
+      <div id="timeline"></div>
     </div>
 
     <div class="panel">
@@ -190,13 +246,14 @@ bodyclass: portal-page
 
     <div class="panel">
       <h2>Settings</h2>
-      <p class="muted">Pricing, plans, model routing, tripwires, referral, segments, content. Edit the JSON and save. (Shopify stays the source of truth for actual charges.)</p>
+      <p class="muted">Pricing, plans, model routing, tripwires, limits, referral, segments, content. Edit the JSON and save. (Shopify stays the source of truth for actual charges.)</p>
       <div class="form-row" style="margin-bottom:10px">
         <select id="cfg-key">
           <option value="pricing">Pricing</option>
           <option value="plans">Plans / tiers</option>
           <option value="models">Model routing</option>
           <option value="tripwires">Tripwires (spend caps)</option>
+          <option value="limits">Limits (windows)</option>
           <option value="referral">Referral program</option>
           <option value="segments">Segments</option>
           <option value="content">Content suite</option>
@@ -209,44 +266,6 @@ bodyclass: portal-page
     </div>
 
     <div class="panel">
-      <h2>Circle — schedule &amp; message</h2>
-      <p class="muted">Set the next monthly call, and message everyone currently in their support window.</p>
-      <div class="form-row" style="margin-bottom:10px">
-        <input id="circ-date" type="text" placeholder="next call (e.g. 2026-07-01 10am CT)" />
-        <input id="circ-url" type="text" placeholder="join URL" />
-        <button id="circ-sched" class="btn small">Save schedule</button>
-      </div>
-      <input id="circ-subj" type="text" placeholder="message subject" style="width:100%;box-sizing:border-box;margin-bottom:8px" />
-      <textarea id="circ-body" rows="4" placeholder="message to the in-window roster…" style="width:100%;box-sizing:border-box"></textarea>
-      <div style="margin-top:8px"><button id="circ-send" class="btn small">Send to roster</button></div>
-      <p id="circ-note" class="note"></p>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>Institutional deals</h2><button id="abtn-deals" class="btn small">Refresh</button></div>
-      <p class="muted">Pipeline of institutional seat-block deals.</p>
-      <div class="form-row" style="margin-bottom:10px">
-        <input id="deal-org" type="text" placeholder="organization" />
-        <input id="deal-seats" type="number" placeholder="seats" style="width:90px" />
-        <input id="deal-value" type="number" placeholder="value $" style="width:110px" />
-        <button id="deal-add" class="btn small">Add</button>
-      </div>
-      <p id="deal-note" class="note"></p>
-      <div id="deals" class="tablewrap"></div>
-    </div>
-
-    <div class="panel">
-      <h2>Issue a refund</h2>
-      <p class="muted">Record a refund on our side (the money-back itself happens in Shopify / the bank).</p>
-      <div class="form-row">
-        <input id="rf-order" type="number" placeholder="order id" style="width:120px" />
-        <input id="rf-amount" type="number" placeholder="refund $ (blank = full)" style="width:170px" />
-        <button id="rf-btn" class="btn small">Refund</button>
-      </div>
-      <p id="rf-note" class="note"></p>
-    </div>
-
-    <div class="panel">
       <div class="panel-head"><h2>Audit log</h2><button id="abtn-audit" class="btn small">Refresh</button></div>
       <p class="muted">Every staff action — who did what, and when.</p>
       <div id="audit" class="tablewrap"></div>
@@ -256,7 +275,14 @@ bodyclass: portal-page
 </main>
 
 <style>
-  /* Collapsible panels (state remembered per browser via localStorage). */
+  /* Section dividers (always visible; not collapsible). */
+  #admin-dashboard .dash-section {
+    margin: 36px 0 8px; padding-bottom: 6px;
+    font-size: .78rem; text-transform: uppercase; letter-spacing: .14em;
+    color: var(--gold-soft, #bd9347); border-bottom: 1px solid rgba(189,147,71,.28);
+  }
+  #admin-dashboard .dash-section:first-of-type { margin-top: 12px; }
+  /* Collapsible panels (state remembered server-side + a localStorage cache). */
   #admin-dashboard .panel h2 { cursor: pointer; user-select: none; }
   #admin-dashboard .panel h2::before { content: "\25BE  "; opacity: .45; font-size: .8em; }
   #admin-dashboard .panel.collapsed h2::before { content: "\25B8  "; }
