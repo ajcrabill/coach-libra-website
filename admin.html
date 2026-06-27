@@ -38,14 +38,16 @@ bodyclass: portal-page
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>All projects</h2>
-        <div class="ph-tools">
+      <details>
+        <summary style="cursor:pointer"><h2 style="display:inline-block;margin:0;vertical-align:middle">All projects</h2></summary>
+        <div class="ph-tools" style="margin:10px 0">
           <input id="ov-search" class="ov-search" type="search" placeholder="Search author, book, stage…" />
           <button id="abtn-refresh" class="btn small">Refresh</button>
-        </div></div>
-      <div id="tally" class="tally"></div>
-      <p class="muted ov-hint">Newest-approved first by default · click any column to sort</p>
-      <div id="overview" class="tablewrap"></div>
+        </div>
+        <div id="tally" class="tally"></div>
+        <p class="muted ov-hint">Newest-approved first by default · click any column to sort</p>
+        <div id="overview" class="tablewrap"></div>
+      </details>
     </div>
 
     <div class="panel">
@@ -133,9 +135,11 @@ bodyclass: portal-page
     </div>
 
     <div class="panel">
-      <h2>Circle — in-window roster</h2>
-      <p class="muted">Authors currently inside their 3-month support window — how big the monthly Circle call is right now.</p>
-      <div id="circle"></div>
+      <details>
+        <summary style="cursor:pointer"><h2 style="display:inline-block;margin:0;vertical-align:middle">Circle — in-window roster</h2></summary>
+        <p class="muted">Authors currently inside their 3-month support window — how big the monthly Circle call is right now.</p>
+        <div id="circle"></div>
+      </details>
     </div>
 
     <div class="panel">
