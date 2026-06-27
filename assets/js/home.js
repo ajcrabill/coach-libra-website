@@ -27,6 +27,8 @@ if (form) form.addEventListener('submit', async (e) => {
         first_name: first.value.trim(),
         last_name: last.value.trim(),
         email: email.value.trim(),
+        // optional referral / seat code (the /invite page exposes it; blank elsewhere)
+        code: (document.getElementById('code')||{}).value.trim() || '',
         // specialty landing pages set a hidden source so AJ sees the segment in /admin
         note: (document.getElementById('wl-source')||{}).value || '',
         _gotcha: (form.querySelector('[name=_gotcha]')||{}).value || ''

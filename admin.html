@@ -123,6 +123,48 @@ bodyclass: portal-page
       </div>
       <p id="prefcfg-note" class="note"></p>
     </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Cohorts — institutional teams</h2>
+        <button id="abtn-cohorts" class="btn small">Refresh</button></div>
+      <p class="muted">Seat blocks bought by institutions. Click a team to see its anonymized progress and the codes to distribute.</p>
+      <div id="cohorts"></div>
+      <div id="cohort-detail"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Circle — in-window roster</h2>
+      <p class="muted">Authors currently inside their 3-month support window — how big the monthly Circle call is right now.</p>
+      <div id="circle"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Vouchers &amp; codes</h2>
+        <button id="abtn-vouchers" class="btn small">Refresh</button></div>
+      <p class="muted">Referral codes, coupons, seat codes, and account entitlements. Mint a comp/entitlement, or void a code.</p>
+      <div class="form-row" style="margin-bottom:14px">
+        <select id="vm-type">
+          <option value="coupon_100">$100 coupon</option>
+          <option value="founder_rate">Founder rate ($1,000/book ×5)</option>
+          <option value="returning_rate">Returning rate ($1,500/book)</option>
+          <option value="seat_code">Seat code (free book)</option>
+        </select>
+        <input id="vm-author" type="number" placeholder="issue to author id (optional)" />
+        <button id="vm-btn" class="btn small">Mint</button>
+      </div>
+      <p id="voucher-note" class="note"></p>
+      <div id="vouchers" class="tablewrap"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Manuscript timeline</h2>
+      <p class="muted">The full state and event history for one manuscript — what happened, and when.</p>
+      <div class="form-row" style="margin-bottom:12px">
+        <input id="tl-id" type="number" placeholder="manuscript id" />
+        <button id="tl-btn" class="btn small">Load timeline</button>
+      </div>
+      <div id="timeline"></div>
+    </div>
   </section>
 
 </main>

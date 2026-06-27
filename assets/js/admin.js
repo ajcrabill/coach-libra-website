@@ -255,7 +255,7 @@ async function loadPrefConfig() {
   };
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig()]); }
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers()]); }
 
 // ---- Sentinel: escalations awaiting AJ's reply ----
 async function loadEscalations() {
@@ -604,6 +604,94 @@ function linkAlias() {
   post("/admin/alias", { primary_email, alias_email }, "al-note", "al-btn", "Alias linked.").then(() => { $("al-alias").value = ""; });
 }
 
+// ---- #90 cohorts (institutional teams) ----
+async function loadCohorts() {
+  let d; try { d = await (await api("/admin/cohorts")).json(); } catch (e) { return; }
+  const cs = d.cohorts || [];
+  $("cohorts").innerHTML = cs.length
+    ? `<ul class="needs">` + cs.map(c =>
+        `<li><span><b>${esc(c.name)}</b> <span class="soft">${esc(c.buyer_email || "")}</span>` +
+        ` — ${c.seats_redeemed}/${c.seats} seats used</span>` +
+        `<span class="wl-actions"><button class="btn small" data-cohort="${c.cohort_id}">View</button></span></li>`).join("") + `</ul>`
+    : `<p class="soft">No institutional teams yet.</p>`;
+  $("cohorts").querySelectorAll("button[data-cohort]").forEach(b =>
+    b.addEventListener("click", () => viewCohort(b.dataset.cohort)));
+}
+async function viewCohort(id) {
+  let d; try { d = await (await api("/admin/cohorts/" + Number(id))).json(); } catch (e) { return; }
+  const dash = d.dashboard || {}, codes = d.codes || [], members = dash.members || [];
+  const rows = members.map(mb =>
+    `<tr><td>#${mb.author_number}</td><td>${esc(mb.stage)}</td>` +
+    `<td>${mb.last_activity_days == null ? "—" : mb.last_activity_days + "d ago"}</td>` +
+    `<td>${mb.stalled ? "⚠︎ stalled" : "on track"}</td></tr>`).join("");
+  const codeRows = codes.map(c =>
+    `<tr><td>#${c.seat_number}</td><td><code>${esc(c.code)}</code></td><td>${c.redeemed ? "redeemed" : esc(c.status)}</td></tr>`).join("");
+  $("cohort-detail").innerHTML =
+    `<h3 class="sub">${esc(dash.name || "")} — ${dash.seats_redeemed}/${dash.seats_total} seats used, ${dash.stalled} stalled</h3>` +
+    `<p class="muted">Buyer link (anonymized — safe to share with the institution): <code>${esc(d.buyer_link || "")}</code></p>` +
+    `<div class="tablewrap"><table><thead><tr><th>Member</th><th>Stage</th><th>Last activity</th><th>Health</th></tr></thead><tbody>${rows}</tbody></table></div>` +
+    `<h4 class="sub">Seat codes</h4><div class="tablewrap"><table><thead><tr><th>Seat</th><th>Code</th><th>Status</th></tr></thead><tbody>${codeRows}</tbody></table></div>`;
+}
+
+// ---- Circle in-window roster ----
+async function loadCircle() {
+  let d; try { d = await (await api("/admin/circle")).json(); } catch (e) { return; }
+  const n = d.in_window || 0;
+  $("circle").innerHTML =
+    `<p><b>${n}</b> author${n === 1 ? "" : "s"} in window (${d.window_days || 90}-day support).</p>` +
+    ((d.members || []).length
+      ? `<div class="tablewrap"><table><thead><tr><th>Member</th><th>Days in</th><th>Days left</th></tr></thead><tbody>` +
+        d.members.map(mb => `<tr><td>#${mb.author_number}</td><td>${mb.days_in_window}</td><td>${mb.days_remaining}</td></tr>`).join("") +
+        `</tbody></table></div>` : "");
+}
+
+// ---- vouchers & codes ----
+async function loadVouchers() {
+  let d; try { d = await (await api("/admin/billing/vouchers")).json(); } catch (e) { return; }
+  const vs = d.vouchers || [];
+  $("vouchers").innerHTML = vs.length
+    ? `<table><thead><tr><th>Code</th><th>Type</th><th>Status</th><th>Left</th><th>Used</th><th></th></tr></thead><tbody>` +
+      vs.map(v =>
+        `<tr><td><code>${esc(v.code)}</code></td><td>${esc(v.vtype)}</td><td>${esc(v.status)}</td>` +
+        `<td>${v.uses_remaining == null ? "∞" : v.uses_remaining}</td><td>${v.redemptions}</td>` +
+        `<td>${v.status === "active" ? `<button class="link" data-void="${v.id}">void</button>` : ""}</td></tr>`).join("") +
+      `</tbody></table>`
+    : `<p class="soft">No vouchers yet.</p>`;
+  $("vouchers").querySelectorAll("button[data-void]").forEach(b =>
+    b.addEventListener("click", () => voidVoucher(b.dataset.void)));
+}
+async function mintVoucher() {
+  const vtype = $("vm-type").value, author = $("vm-author").value.trim();
+  const body = { vtype }; if (author) body.issued_to_author_id = Number(author);
+  try {
+    const d = await (await api("/admin/billing/vouchers", { method: "POST", body: JSON.stringify(body) })).json();
+    if (d.code) { note("voucher-note", "Minted " + d.code, true); $("vm-author").value = ""; await loadVouchers(); }
+    else note("voucher-note", d.error || "Couldn't mint that.", false);
+  } catch (e) { note("voucher-note", "Couldn't mint that.", false); }
+}
+async function voidVoucher(id) {
+  if (!confirm("Void this voucher? It can no longer be redeemed.")) return;
+  try { await api("/admin/billing/vouchers/" + Number(id) + "/void", { method: "POST" }); await loadVouchers(); } catch (e) {}
+}
+
+// ---- manuscript timeline (#86) ----
+async function loadTimeline() {
+  const id = $("tl-id").value.trim(); if (!id) { $("tl-id").focus(); return; }
+  let d; try { d = await (await api("/admin/manuscripts/" + Number(id) + "/timeline")).json(); }
+  catch (e) { $("timeline").innerHTML = `<p class="note err">Couldn't load that timeline.</p>`; return; }
+  if (d.error) { $("timeline").innerHTML = `<p class="note err">Not found.</p>`; return; }
+  const ev = d.events || [];
+  $("timeline").innerHTML =
+    `<p><b>${esc(d.title || "Untitled")}</b> — phase ${esc(String(d.current_phase))}, ${esc(d.phase_status || "")} ` +
+    `<span class="soft">(${esc(d.whose_turn || "")}'s turn)</span></p>` +
+    (d.blocked_reason ? `<p class="note err">Blocked: ${esc(d.blocked_reason)}</p>` : "") +
+    (ev.length
+      ? `<div class="tablewrap"><table><thead><tr><th>When</th><th>Event</th></tr></thead><tbody>` +
+        ev.map(e => `<tr><td class="soft">${esc((e.at || "").replace("T", " ").slice(0, 16))}</td><td>${esc(e.kind || "")}</td></tr>`).join("") +
+        `</tbody></table></div>`
+      : `<p class="soft">No events recorded.</p>`);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   $("abtn-send").addEventListener("click", sendCode);
   $("abtn-verify").addEventListener("click", verify);
@@ -616,6 +704,10 @@ document.addEventListener("DOMContentLoaded", () => {
   $("ap-btn").addEventListener("click", approve);
   $("nb-btn").addEventListener("click", newBook);
   $("al-btn").addEventListener("click", linkAlias);
+  $("abtn-cohorts").addEventListener("click", () => loadCohorts());
+  $("abtn-vouchers").addEventListener("click", () => loadVouchers());
+  $("vm-btn").addEventListener("click", mintVoucher);
+  $("tl-btn").addEventListener("click", loadTimeline);
   if (token()) { loadAll().then(() => show("dashboard")).catch(() => show("signin")); }
   else show("signin");
 });
