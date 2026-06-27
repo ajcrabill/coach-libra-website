@@ -255,7 +255,7 @@ async function loadPrefConfig() {
   };
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadStaff(), loadDeals(), loadAudit()]); }
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadStaff(), loadDeals(), loadAudit(), loadSecretsStatus()]); }
 
 // ---- Sentinel: escalations awaiting AJ's reply ----
 async function loadEscalations() {
@@ -792,14 +792,30 @@ async function loadConfig() {
   $("cfg-json").value = JSON.stringify(d.value, null, 2);
   note("cfg-note", "");
 }
+// Keys that change live behaviour (routing, money, limits) get a firmer confirm before saving.
+const CFG_SENSITIVE = new Set(["models", "pricing", "plans", "tripwires", "limits"]);
 async function saveConfig() {
   const key = $("cfg-key").value;
+  const label = $("cfg-key").selectedOptions[0] ? $("cfg-key").selectedOptions[0].textContent : key;
   let value; try { value = JSON.parse($("cfg-json").value); } catch (e) { note("cfg-note", "Invalid JSON.", false); return; }
+  const msg = CFG_SENSITIVE.has(key)
+    ? `Change "${label}"? This affects live behaviour (model routing, pricing, or limits). A bad value safely falls back to the default, but please double-check before saving.`
+    : `Save changes to "${label}"?`;
+  if (!confirm(msg)) return;
   try {
     const res = await api("/admin/config/" + key, { method: "POST", body: JSON.stringify({ value }) });
     if (res.ok) note("cfg-note", "Saved.", true);
     else { const e = await res.json().catch(() => ({})); note("cfg-note", e.detail || "Couldn't save.", false); }
   } catch (e) { note("cfg-note", "Couldn't save.", false); }
+}
+async function loadSecretsStatus() {
+  let res; try { res = await api("/admin/secrets-status"); } catch (e) { return; }
+  if (!res.ok) { $("secrets-status").innerHTML = `<p class="soft">No access.</p>`; return; }
+  const secrets = (await res.json()).secrets || [];
+  $("secrets-status").innerHTML = `<ul class="needs">` + secrets.map(s =>
+    `<li><span>${esc(s.label)} <span class="soft">(${esc(s.env)})</span></span>` +
+    `<span class="pill${s.present ? "" : " you"}">${s.present ? "✓ configured" : "✗ missing"}</span></li>`).join("") +
+    `</ul>`;
 }
 // ---- circle ops ----
 async function scheduleCircle() {
