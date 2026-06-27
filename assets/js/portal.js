@@ -490,6 +490,72 @@ async function doAddLink() {
   $("btn-link").disabled = false;
 }
 
+// ---- account closure (deactivate / delete) ----
+function cmOpen(html) { $("close-modal-body").innerHTML = html; $("close-modal").style.display = "flex"; }
+function cmClose() { $("close-modal").style.display = "none"; $("close-modal-body").innerHTML = ""; }
+const POLICY_LINKS = `<p class="muted"><a href="/privacy" target="_blank">Privacy</a> &middot; <a href="/help" target="_blank">Help</a></p>`;
+function cmSignedOut(title, msg) {
+  cmOpen(`<h3>${title}</h3><p class="muted">${msg}</p><div class="modal-actions"><button class="btn" id="cm-done">Done</button></div>`);
+  $("cm-done").addEventListener("click", () => { setToken(null); location.href = "/"; });
+}
+function deactivateStart() {
+  cmOpen(`<h3>Deactivate your account?</h3>
+    <p class="muted">You'll be signed out and removed from active coaching — no more emails. You can reactivate anytime with a link we'll email you. Note: deactivated accounts may be removed if we ever need to reclaim server space.</p>
+    ${POLICY_LINKS}
+    <textarea id="close-reason" rows="3" placeholder="Anything you'd like us to know? (optional)" style="width:100%;box-sizing:border-box"></textarea>
+    <div class="modal-actions"><button class="link" id="cm-x">Cancel</button> <button class="btn" id="cm-go">Continue</button></div>`);
+  $("cm-x").addEventListener("click", cmClose);
+  $("cm-go").addEventListener("click", () => deactivateConfirm($("close-reason").value));
+}
+function deactivateConfirm(reason) {
+  cmOpen(`<h3>Are you sure?</h3>
+    <p class="muted">This signs you out now. Your work is kept and you can come back anytime.</p>
+    <div class="modal-actions"><button class="link" id="cm-x">Cancel</button> <button class="btn danger" id="cm-go">Yes, deactivate</button></div>`);
+  $("cm-x").addEventListener("click", cmClose);
+  $("cm-go").addEventListener("click", async () => {
+    $("cm-go").disabled = true;
+    try {
+      const res = await api("/me/deactivate", { method: "POST", body: JSON.stringify({ reason: reason || "" }) });
+      if (res.ok) cmSignedOut("You're deactivated.", "Check your email — there's a link to reactivate anytime. You're signed out now.");
+      else { cmClose(); alert("Couldn't deactivate. Try again, or email hello@coachlibra.com."); }
+    } catch (e) { cmClose(); }
+  });
+}
+function deleteStart() {
+  cmOpen(`<h3>Delete your account?</h3>
+    <p class="muted">This permanently deletes your account and everything in it — your books, your voice, and all your materials.</p>
+    ${POLICY_LINKS}
+    <textarea id="close-reason" rows="3" placeholder="We'd value knowing why (optional)" style="width:100%;box-sizing:border-box"></textarea>
+    <div class="modal-actions"><button class="link" id="cm-x">Cancel</button> <button class="btn danger" id="cm-go">Continue</button></div>`);
+  $("cm-x").addEventListener("click", cmClose);
+  $("cm-go").addEventListener("click", () => deleteWarn($("close-reason").value));
+}
+function deleteWarn(reason) {
+  cmOpen(`<h3>This is permanent.</h3>
+    <p class="muted">You'll have 7 days to cancel via the link we email you. After that it cannot be undone — your books, voice, and materials are gone for good.</p>
+    <div class="modal-actions"><button class="link" id="cm-x">Keep my account</button> <button class="btn danger" id="cm-go">I understand, continue</button></div>`);
+  $("cm-x").addEventListener("click", cmClose);
+  $("cm-go").addEventListener("click", () => deleteConfirm(reason));
+}
+function deleteConfirm(reason) {
+  cmOpen(`<h3>Last step.</h3>
+    <p class="muted">Type <b>DELETE</b> to confirm. This schedules permanent deletion in 7 days.</p>
+    <input id="del-confirm" type="text" placeholder="DELETE" autocomplete="off" style="width:170px" />
+    <div class="modal-actions"><button class="link" id="cm-x">Cancel</button> <button class="btn danger" id="cm-go">Delete my account</button></div>
+    <p id="del-note" class="note"></p>`);
+  $("cm-x").addEventListener("click", cmClose);
+  $("cm-go").addEventListener("click", async () => {
+    const confirm = ($("del-confirm").value || "").trim();
+    if (confirm !== "DELETE") { note("del-note", "Type DELETE exactly to confirm.", false); return; }
+    $("cm-go").disabled = true;
+    try {
+      const res = await api("/me/delete", { method: "POST", body: JSON.stringify({ reason: reason || "", confirm }) });
+      if (res.ok) cmSignedOut("Scheduled.", "Your account is scheduled for deletion. You have 7 days to cancel — check your email for the link. You're signed out now.");
+      else { note("del-note", "Couldn't schedule. Try again.", false); $("cm-go").disabled = false; }
+    } catch (e) { note("del-note", "Couldn't schedule.", false); $("cm-go").disabled = false; }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   $("btn-send").addEventListener("click", sendCode);
   $("btn-verify").addEventListener("click", verify);
@@ -501,6 +567,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("btn-link").addEventListener("click", doAddLink);
   $("link-url").addEventListener("keydown", e => { if (e.key === "Enter") doAddLink(); });
   $("btn-save-profile").addEventListener("click", saveProfile);
+  $("link-deactivate").addEventListener("click", e => { e.preventDefault(); deactivateStart(); });
+  $("link-delete").addEventListener("click", e => { e.preventDefault(); deleteStart(); });
+  $("close-modal").addEventListener("click", e => { if (e.target.id === "close-modal") cmClose(); });
   if (token()) { loadDashboard().then(() => show("dashboard")).catch(() => show("signin")); }
   else show("signin");
 });

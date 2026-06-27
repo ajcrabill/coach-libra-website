@@ -82,6 +82,26 @@ bodyclass: portal-page
     <div class="panel" id="credits-panel" hidden><h2>Your credits</h2><div id="credits-body"></div></div>
     <div class="panel" id="orders-panel" hidden><h2>Orders &amp; payment</h2><div id="orders-body"></div></div>
     <div class="panel" id="team-panel" hidden><h2>Your team</h2><div id="team-body"></div></div>
+
+    <div id="danger-bar">
+      <a href="#" id="link-deactivate" class="danger-link">Deactivate account</a>
+      <span class="danger-sep">·</span>
+      <a href="#" id="link-delete" class="danger-link">Delete account</a>
+    </div>
   </section>
 
 </main>
+
+<div id="close-modal"><div id="close-modal-body"></div></div>
+
+<style>
+  #danger-bar { position:sticky; bottom:0; margin-top:34px; padding:14px; text-align:center; background:rgba(20,16,12,.85); backdrop-filter:blur(4px); border-top:1px solid rgba(255,255,255,.08); font-size:.9rem }
+  .danger-link { color:#cf8a82; text-decoration:none } .danger-link:hover { text-decoration:underline }
+  .danger-sep { color:rgba(255,255,255,.3); margin:0 8px }
+  #close-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:200; align-items:center; justify-content:center; padding:20px }
+  #close-modal-body { background:#1c1812; border:1px solid rgba(255,255,255,.14); border-radius:12px; padding:26px; max-width:460px; width:100% }
+  #close-modal-body h3 { margin:0 0 10px }
+  #close-modal-body .modal-actions { margin-top:18px; display:flex; gap:14px; justify-content:flex-end; align-items:center }
+  #close-modal-body .btn.danger { background:#7c2d27 }
+  #close-modal-body input, #close-modal-body textarea { background:rgba(255,255,255,.05); color:inherit; border:1px solid rgba(255,255,255,.15); border-radius:6px; padding:8px }
+</style>

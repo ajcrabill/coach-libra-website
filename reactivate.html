@@ -1,0 +1,49 @@
+---
+layout: default
+title: "Coach Libra — Reactivate your account"
+description: "Reactivate your Coach Libra account."
+pageCss: home
+---
+<main id="top">
+  <section class="band" style="padding-top:120px">
+    <div class="wrap">
+      <div class="cta-band">
+        <p class="eyebrow">Your account</p>
+        <h2 id="ra-title">Reactivating…</h2>
+        <div id="ra-body"><p class="muted">One moment…</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+{% raw %}
+<script>
+(function () {
+  const API = "https://esbcloud.taild49f53.ts.net";
+  const token = (new URLSearchParams(location.search).get("t") || "").trim();
+  const title = document.getElementById("ra-title"), body = document.getElementById("ra-body");
+  if (!token) {
+    title.textContent = "Link missing";
+    body.innerHTML = "<p class='muted'>This link is missing its token. Please use the link from your email.</p>";
+    return;
+  }
+  fetch(API + "/reactivate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(d => {
+      if (d.ok) {
+        title.textContent = "Welcome back.";
+        body.innerHTML = "<p class='muted'>Your account is active again and your work is right where you left it.</p><p style='margin-top:14px'><a class='btn' href='/portal'>Go to your portal</a></p>";
+      } else {
+        title.textContent = "Nothing to do";
+        body.innerHTML = "<p class='muted'>This account is already active. <a href='/portal'>Sign in</a> anytime.</p>";
+      }
+    })
+    .catch(err => {
+      title.textContent = "We couldn't do that";
+      body.innerHTML = (err === 404)
+        ? "<p class='muted'>This link is invalid, or the account has already been removed. If you think this is a mistake, email hello@coachlibra.com.</p>"
+        : "<p class='muted'>Something went wrong. Please try again, or email hello@coachlibra.com.</p>";
+    });
+})();
+</script>
+{% endraw %}
