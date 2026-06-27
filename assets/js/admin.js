@@ -870,24 +870,51 @@ async function loadAudit() {
     : `<p class="soft">No actions logged yet.</p>`;
 }
 
-// Make every dashboard panel collapsible (collapsed by default); remember each panel's open/closed
-// state per browser so the console comes back the way you left it.
+// Make every dashboard panel collapsible (collapsed by default) and remember each panel's open/closed
+// state. State is saved server-side (per staff member) so the layout follows you across browsers and
+// devices; localStorage is a same-device cache for an instant, flicker-free first paint.
+const PANEL_KEY = "cl_admin_panels";
+let panelPrefs = {};
+
+function applyPanelState() {
+  document.querySelectorAll("#admin-dashboard .panel[data-key]").forEach(panel => {
+    panel.classList.toggle("collapsed", panelPrefs[panel.dataset.key] !== "open");   // default collapsed
+  });
+}
+
+function savePanelPrefs() {
+  try { localStorage.setItem(PANEL_KEY, JSON.stringify(panelPrefs)); } catch (e) {}
+  api("/admin/ui-prefs", { method: "PUT", body: JSON.stringify({ panels: panelPrefs }) }).catch(() => {});
+}
+
+async function syncPanelPrefsFromServer() {
+  try {
+    const r = await api("/admin/ui-prefs");
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d && d.panels && typeof d.panels === "object") {
+      panelPrefs = d.panels;
+      try { localStorage.setItem(PANEL_KEY, JSON.stringify(panelPrefs)); } catch (e) {}
+      applyPanelState();
+    }
+  } catch (e) {}
+}
+
 function setupCollapsiblePanels() {
-  const KEY = "cl_admin_panels";
-  let saved = {}; try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+  try { panelPrefs = JSON.parse(localStorage.getItem(PANEL_KEY) || "{}"); } catch (e) { panelPrefs = {}; }
   document.querySelectorAll("#admin-dashboard .panel").forEach(panel => {
     const h2 = panel.querySelector("h2");
     if (!h2 || panel.dataset.coll) return;
     panel.dataset.coll = "1";
-    const key = h2.textContent.trim().slice(0, 50);
-    if (saved[key] !== "open") panel.classList.add("collapsed");          // collapsed by default
+    panel.dataset.key = h2.textContent.trim().slice(0, 50);
     h2.addEventListener("click", () => {
       panel.classList.toggle("collapsed");
-      let st = {}; try { st = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
-      st[key] = panel.classList.contains("collapsed") ? "closed" : "open";
-      localStorage.setItem(KEY, JSON.stringify(st));
+      panelPrefs[panel.dataset.key] = panel.classList.contains("collapsed") ? "closed" : "open";
+      savePanelPrefs();
     });
   });
+  applyPanelState();              // instant paint from the local cache (collapsed where unknown)
+  syncPanelPrefsFromServer();     // then reconcile with the server (cross-device)
 }
 
 document.addEventListener("DOMContentLoaded", () => {
