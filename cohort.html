@@ -1,0 +1,62 @@
+---
+layout: default
+title: "Coach Libra — Your team's progress"
+description: "Track your team's progress with Coach Libra."
+pageCss: home
+---
+<main id="top">
+  <section class="band" style="padding-top:120px">
+    <div class="wrap">
+      <div class="cta-band">
+        <p class="eyebrow">Your team</p>
+        <h2 id="team-name">Your team's progress</h2>
+        <div id="cohort-content"><p class="muted">Loading…</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<style>
+  #cohort-content table { width:100%; border-collapse:collapse; margin:8px 0 22px }
+  #cohort-content th, #cohort-content td { text-align:left; padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.12); font-size:.95rem }
+  #cohort-content th { color:var(--gold-soft, #bd9347); font-weight:600 }
+  #cohort-content code { background:rgba(255,255,255,.06); padding:2px 6px; border-radius:4px }
+  #cohort-content h3 { margin:24px 0 6px }
+</style>
+
+{% raw %}
+<script>
+(function () {
+  const API = "https://esbcloud.taild49f53.ts.net";
+  const esc = s => (s == null ? "" : String(s)).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  const token = (new URLSearchParams(location.search).get("t") || "").trim();
+  const content = document.getElementById("cohort-content");
+  if (!token) { content.innerHTML = "<p class='muted'>This link is missing its access token. Please use the link from your welcome email.</p>"; return; }
+  fetch(API + "/cohort/" + encodeURIComponent(token))
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(d => {
+      document.getElementById("team-name").textContent = (d.name || "Your team") + " — progress";
+      const dash = d.dashboard || {}, members = dash.members || [], codes = d.codes || [];
+      const memRows = members.map(mb =>
+        `<tr><td>#${mb.author_number}</td><td>${esc(mb.stage)}</td>` +
+        `<td>${mb.last_activity_days == null ? "—" : mb.last_activity_days + "d ago"}</td>` +
+        `<td>${mb.stalled ? "could use a nudge" : "on track"}</td></tr>`).join("");
+      const codeRows = codes.map(c =>
+        `<tr><td>#${c.seat_number}</td><td><code>${esc(c.code)}</code></td><td>${c.redeemed ? "redeemed" : "available"}</td></tr>`).join("");
+      content.innerHTML =
+        `<p class="muted">${dash.seats_redeemed || 0} of ${dash.seats_total || 0} seats in use` +
+        (dash.stalled ? ` · ${dash.stalled} member${dash.stalled === 1 ? "" : "s"} could use a nudge` : "") +
+        `. Each member is shown by a private number — never a name.</p>` +
+        `<h3>Members</h3><table><thead><tr><th>Member</th><th>Stage</th><th>Last active</th><th>Status</th></tr></thead><tbody>` +
+        (memRows || "<tr><td colspan='4' class='muted'>No one has started yet.</td></tr>") + `</tbody></table>` +
+        `<h3>Access codes to distribute</h3><table><thead><tr><th>Seat</th><th>Code</th><th>Status</th></tr></thead><tbody>` +
+        (codeRows || "<tr><td colspan='3' class='muted'>No codes.</td></tr>") + `</tbody></table>`;
+    })
+    .catch(err => {
+      content.innerHTML = err === 404
+        ? "<p class='muted'>We couldn't find that team — the link may be expired or incorrect. Email hello@coachlibra.com and we'll help.</p>"
+        : "<p class='muted'>Something went wrong loading your team. Please try again, or email hello@coachlibra.com.</p>";
+    });
+})();
+</script>
+{% endraw %}

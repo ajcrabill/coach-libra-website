@@ -165,6 +165,28 @@ bodyclass: portal-page
       </div>
       <div id="timeline"></div>
     </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Finance</h2>
+        <button id="abtn-finance" class="btn small">Refresh</button></div>
+      <p class="muted">Revenue billed vs collected, and recent orders. (Empty until billing goes live.)</p>
+      <div id="finance-strip" class="tally"></div>
+      <div id="finance" class="tablewrap"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Staff &amp; roles</h2>
+        <button id="abtn-staff" class="btn small">Refresh</button></div>
+      <p class="muted">Owner-only. Add a teammate, edit their roles, or deactivate them. The last active owner can't be removed.</p>
+      <div class="form-row" style="margin-bottom:12px">
+        <input id="st-email" type="email" placeholder="teammate email" />
+        <input id="st-name" type="text" placeholder="Name" />
+        <input id="st-roles" type="text" placeholder="roles, comma-sep (e.g. editorial,finance)" />
+        <button id="st-add" class="btn small">Add</button>
+      </div>
+      <p id="staff-note" class="note"></p>
+      <div id="staff" class="tablewrap"></div>
+    </div>
   </section>
 
 </main>

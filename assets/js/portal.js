@@ -44,7 +44,7 @@ async function verify() {
 
 // ---- dashboard ----
 let BOOKS = [], CURRENT = null, VOICE_LINE = "";   // merged book list + selected book id
-async function loadDashboard() { await Promise.all([loadMe(), loadBooks(), loadSettings(), loadSent()]); }
+async function loadDashboard() { await Promise.all([loadMe(), loadBooks(), loadSettings(), loadSent(), loadReferral(), loadCredits(), loadOrders(), loadTeam()]); }
 async function loadMe() {
   const d = await (await api("/me")).json();
   $("me-name").textContent = (d.name||"").split(" ")[0] || "there";
@@ -53,6 +53,51 @@ async function loadMe() {
   const al = (d.aliases || []);
   $("me-aliases").hidden = al.length === 0;
   $("me-aliases-val").textContent = al.join(", ");
+}
+
+// ---- referral / credits / orders / team (the commerce + membership layer) ----
+async function loadReferral() {
+  let d; try { d = await (await api("/me/referral")).json(); } catch (e) { return; }
+  $("referral-body").innerHTML =
+    `<p class="muted">Know someone with a book in them? Share your code — they get 10% off their first book, and you earn a $100 credit toward your next when their book is paid.</p>` +
+    `<div class="infoline"><span class="info-label">Your code</span> <span class="info-val"><b>${esc(d.code)}</b></span></div>` +
+    `<div style="margin-top:10px"><button class="btn" id="btn-copy-referral">Copy share message</button></div>` +
+    `<p id="referral-note" class="note"></p>`;
+  const btn = $("btn-copy-referral");
+  if (btn) btn.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(d.share || ""); note("referral-note", "Copied — paste it anywhere.", true); }
+    catch (e) { note("referral-note", d.share || "", false); }
+  });
+}
+async function loadCredits() {
+  let d; try { d = await (await api("/me/vouchers")).json(); } catch (e) { return; }
+  const creds = d.credits || [];
+  $("credits-panel").hidden = creds.length === 0;
+  if (!creds.length) return;
+  $("credits-body").innerHTML = `<ul class="creditlist">` + creds.map(c =>
+    `<li><b>${esc(c.title)}</b> — <span class="muted">${esc(c.detail)}</span></li>`).join("") + `</ul>`;
+}
+async function loadOrders() {
+  let d; try { d = await (await api("/me/orders")).json(); } catch (e) { return; }
+  const orders = d.orders || [];
+  $("orders-panel").hidden = orders.length === 0 && !d.payment_due;
+  if (orders.length === 0 && !d.payment_due) return;
+  const due = d.payment_due ? `<p class="note err">Your finished book is ready — please complete payment to receive it.</p>` : "";
+  const rows = orders.map(o =>
+    `<tr><td>${esc(o.product || (o.books + " book" + (o.books === 1 ? "" : "s")))}</td>` +
+    `<td>$${Math.round((o.amount_cents || 0) / 100).toLocaleString()}</td>` +
+    `<td>${esc(o.payment_status)}</td><td class="muted">${esc(fmtWhen(o.at))}</td></tr>`).join("");
+  $("orders-body").innerHTML = due +
+    (orders.length ? `<div class="tablewrap"><table><thead><tr><th>Order</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table></div>` : "");
+}
+async function loadTeam() {
+  let d; try { d = await (await api("/me/team")).json(); } catch (e) { return; }
+  if (!d.team) { $("team-panel").hidden = true; return; }
+  $("team-panel").hidden = false;
+  const circle = (d.circle && d.circle.in_window)
+    ? `<p class="muted">You have access to our monthly Circle call for the next ${d.circle.days_remaining} days.</p>` : "";
+  $("team-body").innerHTML =
+    `<div class="infoline"><span class="info-label">Team</span> <span class="info-val"><b>${esc(d.team.name)}</b></span></div>` + circle;
 }
 function fmtWhen(iso) {
   if (!iso) return "";

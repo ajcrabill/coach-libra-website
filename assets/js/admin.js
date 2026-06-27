@@ -255,7 +255,7 @@ async function loadPrefConfig() {
   };
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers()]); }
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadStaff()]); }
 
 // ---- Sentinel: escalations awaiting AJ's reply ----
 async function loadEscalations() {
@@ -692,6 +692,65 @@ async function loadTimeline() {
       : `<p class="soft">No events recorded.</p>`);
 }
 
+// ---- finance ----
+async function loadFinance() {
+  let res; try { res = await api("/admin/finance"); } catch (e) { return; }
+  if (!res.ok) { $("finance").innerHTML = `<p class="soft">No finance access.</p>`; return; }
+  const d = await res.json(), s = d.summary || {};
+  const usd = c => "$" + Math.round((c || 0) / 100).toLocaleString();
+  $("finance-strip").innerHTML = `<p>${s.orders || 0} orders · billed ${usd(s.total_billed_cents)} · collected ${usd(s.total_collected_cents)}</p>`;
+  const orders = d.orders || [];
+  $("finance").innerHTML = orders.length
+    ? `<table><thead><tr><th>Buyer</th><th>Product</th><th>Amount</th><th>Paid</th><th>Status</th><th>When</th></tr></thead><tbody>` +
+      orders.map(o => `<tr><td>${esc(o.buyer_email || "—")}</td><td>${esc(o.product || "")}</td><td>${usd(o.amount_cents)}</td><td>${usd(o.amount_paid_cents)}</td><td>${esc(o.payment_status)}</td><td class="soft">${esc((o.at || "").slice(0, 10))}</td></tr>`).join("") +
+      `</tbody></table>`
+    : `<p class="soft">No orders yet.</p>`;
+}
+
+// ---- staff & roles (owner-only) ----
+async function loadStaff() {
+  let res; try { res = await api("/admin/staff"); } catch (e) { return; }
+  if (!res.ok) { $("staff").innerHTML = `<p class="soft">Owner-only — you don't have access to staff management.</p>`; return; }
+  const d = await res.json(), staff = d.staff || [], roles = d.assignable_roles || [];
+  $("staff").innerHTML = (staff.length
+    ? `<table><thead><tr><th>Email</th><th>Roles</th><th>Status</th><th></th></tr></thead><tbody>` +
+      staff.map(st => `<tr><td>${esc(st.email)}</td>` +
+        `<td><input class="st-roles-edit" data-id="${st.id}" value="${esc((st.roles || []).join(','))}" style="width:180px" /></td>` +
+        `<td>${esc(st.status)}</td>` +
+        `<td><button class="link" data-save-roles="${st.id}">save roles</button> · ` +
+        (st.status === "active" ? `<button class="link" data-deact="${st.id}">deactivate</button>` : `<button class="link" data-act="${st.id}">activate</button>`) +
+        `</td></tr>`).join("") + `</tbody></table>`
+    : `<p class="soft">No staff yet.</p>`) +
+    `<p class="muted">Assignable roles: ${roles.map(esc).join(", ")}</p>`;
+  $("staff").querySelectorAll("button[data-save-roles]").forEach(b => b.addEventListener("click", () => {
+    const inp = $("staff").querySelector(`.st-roles-edit[data-id="${b.dataset.saveRoles}"]`);
+    staffApi("PUT", `/admin/staff/${b.dataset.saveRoles}/roles`, { roles: inp.value.split(",").map(x => x.trim()).filter(Boolean) });
+  }));
+  $("staff").querySelectorAll("button[data-deact]").forEach(b => b.addEventListener("click", () => staffApi("POST", `/admin/staff/${b.dataset.deact}/deactivate`)));
+  $("staff").querySelectorAll("button[data-act]").forEach(b => b.addEventListener("click", () => staffApi("POST", `/admin/staff/${b.dataset.act}/activate`)));
+}
+async function staffApi(method, path, body) {
+  try {
+    const res = await api(path, { method, body: body ? JSON.stringify(body) : undefined });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); note("staff-note", e.detail || "Couldn't do that.", false); return; }
+    const d = await res.json();
+    if (d.error) note("staff-note", "Couldn't do that: " + d.error, false);
+    else { note("staff-note", "Done.", true); await loadStaff(); }
+  } catch (e) { note("staff-note", "Couldn't do that.", false); }
+}
+async function addStaff() {
+  const email = $("st-email").value.trim(), name = $("st-name").value.trim();
+  const roles = $("st-roles").value.split(",").map(x => x.trim()).filter(Boolean);
+  if (!email) { $("st-email").focus(); return; }
+  try {
+    const res = await api("/admin/staff", { method: "POST", body: JSON.stringify({ email, name, roles }) });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); note("staff-note", "Couldn't add: " + (e.detail || "denied"), false); return; }
+    const d = await res.json();
+    if (d.error) note("staff-note", "Couldn't add: " + d.error, false);
+    else { note("staff-note", "Added " + email, true); $("st-email").value = ""; $("st-name").value = ""; $("st-roles").value = ""; await loadStaff(); }
+  } catch (e) { note("staff-note", "Couldn't add that.", false); }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   $("abtn-send").addEventListener("click", sendCode);
   $("abtn-verify").addEventListener("click", verify);
@@ -708,6 +767,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("abtn-vouchers").addEventListener("click", () => loadVouchers());
   $("vm-btn").addEventListener("click", mintVoucher);
   $("tl-btn").addEventListener("click", loadTimeline);
+  $("abtn-finance").addEventListener("click", () => loadFinance());
+  $("abtn-staff").addEventListener("click", () => loadStaff());
+  $("st-add").addEventListener("click", addStaff);
   if (token()) { loadAll().then(() => show("dashboard")).catch(() => show("signin")); }
   else show("signin");
 });
