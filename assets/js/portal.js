@@ -44,7 +44,22 @@ async function verify() {
 
 // ---- dashboard ----
 let BOOKS = [], CURRENT = null, VOICE_LINE = "";   // merged book list + selected book id
-async function loadDashboard() { await Promise.all([loadMe(), loadBooks(), loadSettings(), loadSent(), loadReferral(), loadCredits(), loadOrders(), loadTeam()]); }
+async function loadDashboard() { await Promise.all([loadMe(), loadBooks(), loadSettings(), loadSent(), loadReferral(), loadCredits(), loadOrders(), loadTeam(), loadLaunch()]); }
+async function loadLaunch() {
+  let d; try { d = await (await api("/me/launch")).json(); } catch (e) { return; }
+  const panel = $("launch-panel"), books = (d && d.books) || [];
+  if (!books.length) { if (panel) panel.hidden = true; return; }
+  $("launch-tools").innerHTML = books.map(b =>
+    `<h3 class="sub">${esc(b.title)}</h3>` + ((b.tools && b.tools.length)
+      ? b.tools.map(t => `<details class="launch-tool" style="margin:8px 0"><summary style="cursor:pointer"><b>${esc(t.label)}</b></summary>` +
+          `<textarea readonly rows="7" style="width:100%;box-sizing:border-box;margin-top:6px">${esc(t.text || "")}</textarea></details>`).join("")
+      : `<p class="muted">Your launch tools are being prepared.</p>`)).join("");
+  const pkg = d.launch_package_url
+    ? `<a class="btn" href="${esc(d.launch_package_url)}">Get the Launch Package →</a>`
+    : `<a class="btn" href="mailto:hello@coachlibra.com?subject=${encodeURIComponent("The Launch Package")}">Ask about the Launch Package →</a>`;
+  $("launch-links").innerHTML = `<a class="btn" href="${esc(d.launch_page_url || "/launch")}">Read the launch guide →</a> &nbsp; ${pkg}`;
+  if (panel) panel.hidden = false;
+}
 async function loadMe() {
   const d = await (await api("/me")).json();
   $("me-name").textContent = (d.name||"").split(" ")[0] || "there";
