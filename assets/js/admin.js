@@ -736,10 +736,11 @@ async function loadFinance() {
 
 // ---- inquiries inbox (non-author email; reply box pre-drafted in Coach Libra's voice) ----
 async function loadInquiries() {
-  let res; try { res = await api("/admin/inquiries"); } catch (e) { return; }
+  $("inquiries").innerHTML = `<p class="soft">Loading…</p>`;
+  let res; try { res = await api("/admin/inquiries"); } catch (e) { $("inquiries").innerHTML = `<p class="soft">Couldn't reach the server — try Refresh again.</p>`; return; }
   if (!res.ok) { $("inquiries").innerHTML = `<p class="soft">No inquiries access.</p>`; return; }
   const d = await res.json(), items = d.inquiries || [];
-  $("inquiries").innerHTML = `<p class="muted">${d.open_count || 0} open.</p>` + (items.length
+  $("inquiries").innerHTML = `<p class="muted">${d.open_count || 0} open · checked ${new Date().toLocaleTimeString()}</p>` + (items.length
     ? items.map(i => `<div class="inq" style="border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px;margin:10px 0">
         <div><b>${esc(i.from_name || i.from_email)}</b> <span class="soft">&lt;${esc(i.from_email)}&gt; · ${esc((i.at || "").slice(0, 10))}</span></div>
         <div style="margin:4px 0 6px"><b>${esc(i.subject || "(no subject)")}</b></div>
@@ -1100,7 +1101,10 @@ document.addEventListener("DOMContentLoaded", () => {
   $("vm-btn").addEventListener("click", mintVoucher);
   $("tl-btn").addEventListener("click", loadTimeline);
   $("abtn-finance").addEventListener("click", () => loadFinance());
-  $("abtn-inquiries").addEventListener("click", () => loadInquiries());
+  $("abtn-inquiries").addEventListener("click", async (e) => {
+    const b = e.currentTarget; b.textContent = "Refreshing…"; b.disabled = true;
+    try { await loadInquiries(); } finally { b.textContent = "Refresh"; b.disabled = false; }
+  });
   $("abtn-staff").addEventListener("click", () => loadStaff());
   $("st-add").addEventListener("click", addStaff);
   $("abtn-launch").addEventListener("click", () => loadLaunchTools());
