@@ -63,9 +63,6 @@ bodyclass: portal-page
       <div id="overview" class="tablewrap"></div>
     </div>
 
-    <!-- ===================== AUTHORS ===================== -->
-    <h2 class="dash-section">Authors</h2>
-
     <div class="panel">
       <h2>Waitlist</h2>
       <p class="muted">People who requested an invitation from the site. Approve to create the author and send their welcome.</p>
@@ -115,9 +112,6 @@ bodyclass: portal-page
       </div>
       <p id="prefcfg-note" class="note"></p>
     </div>
-
-    <!-- ===================== PROGRAMS ===================== -->
-    <h2 class="dash-section">Programs</h2>
 
     <div class="panel">
       <div class="panel-head"><h2>Cohorts — institutional teams</h2>
@@ -178,9 +172,6 @@ bodyclass: portal-page
       <div id="deals" class="tablewrap"></div>
     </div>
 
-    <!-- ===================== MONEY ===================== -->
-    <h2 class="dash-section">Money</h2>
-
     <div class="panel">
       <div class="panel-head"><h2>Finance</h2>
         <button id="abtn-finance" class="btn small">Refresh</button></div>
@@ -215,9 +206,6 @@ bodyclass: portal-page
       <p id="rf-note" class="note"></p>
     </div>
 
-    <!-- ===================== SYSTEM ===================== -->
-    <h2 class="dash-section">System</h2>
-
     <div class="panel">
       <h2>Sentinel — alerts &amp; learned rules</h2>
       <p class="muted">Recent watchdog alerts (confirm a good catch to teach Libra) and the rules it's learned. The action items moved up to “Needs your attention.”</p>
@@ -225,12 +213,6 @@ bodyclass: portal-page
       <div id="sentinel-feed"></div>
       <h3 class="sub">Learned rules</h3>
       <div id="sentinel-rules"></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-head"><h2>Email exemplars</h2><button id="abtn-exemplars" class="btn small">Refresh</button></div>
-      <p class="muted">The gold-standard email each author touchpoint is modeled on. Promote a great sent email by replying <code>exemplar: &lt;step&gt;</code> as an admin.</p>
-      <div id="exemplars"></div>
     </div>
 
     <div class="panel">
@@ -252,6 +234,17 @@ bodyclass: portal-page
     </div>
 
     <div class="panel">
+      <div class="panel-head"><h2>Book Launch Tools</h2>
+        <button id="abtn-launch" class="btn small">Refresh</button></div>
+      <p class="muted">The extras built from each finished book. <b>Free &amp; automatic</b> tools are generated for real and emailed to the author on delivery; the rest are offered as a menu they can reply to claim. Edit any tool, toggle free/automatic, add or remove, then Save.</p>
+      <label style="display:block;margin:6px 0"><input type="checkbox" id="launch-enabled"> Book launch tools enabled</label>
+      <div id="launch-tools"></div>
+      <div style="margin-top:10px"><button id="launch-add" class="btn small">+ Add tool</button>
+        &nbsp;<button id="launch-save" class="btn">Save</button>
+        <span id="launch-note" class="note"></span></div>
+    </div>
+
+    <div class="panel">
       <div class="panel-head"><h2>Staff &amp; roles</h2>
         <button id="abtn-staff" class="btn small">Refresh</button></div>
       <p class="muted">Owner-only. Add a teammate, edit their roles, or deactivate them. The last active owner can't be removed.</p>
@@ -266,14 +259,9 @@ bodyclass: portal-page
     </div>
 
     <div class="panel">
-      <div class="panel-head"><h2>Book Launch Tools</h2>
-        <button id="abtn-launch" class="btn small">Refresh</button></div>
-      <p class="muted">The extras built from each finished book. <b>Free &amp; automatic</b> tools are generated for real and emailed to the author on delivery; the rest are offered as a menu they can reply to claim. Edit any tool, toggle free/automatic, add or remove, then Save.</p>
-      <label style="display:block;margin:6px 0"><input type="checkbox" id="launch-enabled"> Book launch tools enabled</label>
-      <div id="launch-tools"></div>
-      <div style="margin-top:10px"><button id="launch-add" class="btn small">+ Add tool</button>
-        &nbsp;<button id="launch-save" class="btn">Save</button>
-        <span id="launch-note" class="note"></span></div>
+      <div class="panel-head"><h2>Email exemplars</h2><button id="abtn-exemplars" class="btn small">Refresh</button></div>
+      <p class="muted">The gold-standard email each author touchpoint is modeled on. Promote a great sent email by replying <code>exemplar: &lt;step&gt;</code> as an admin.</p>
+      <div id="exemplars"></div>
     </div>
 
     <div class="panel">
