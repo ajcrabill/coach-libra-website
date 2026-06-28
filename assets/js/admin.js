@@ -726,7 +726,10 @@ async function loadFinance() {
   const orders = d.orders || [];
   $("finance").innerHTML = orders.length
     ? `<table><thead><tr><th>Buyer</th><th>Product</th><th>Amount</th><th>Paid</th><th>Status</th><th>When</th></tr></thead><tbody>` +
-      orders.map(o => `<tr><td>${esc(o.buyer_email || "—")}</td><td>${esc(o.product || "")}</td><td>${usd(o.amount_cents)}</td><td>${usd(o.amount_paid_cents)}</td><td>${esc(o.payment_status)}</td><td class="soft">${esc((o.at || "").slice(0, 10))}</td></tr>`).join("") +
+      orders.map(o => {
+        const detail = o.seats ? ` · ${o.seats} seats` : (o.books ? ` · ${o.books} book${o.books > 1 ? "s" : ""}` : "");
+        return `<tr><td>${esc(o.buyer_email || "—")}</td><td>${esc(o.product || "")}<span class="soft">${detail}</span></td><td>${usd(o.amount_cents)}</td><td>${usd(o.amount_paid_cents)}</td><td>${esc(o.payment_status)}</td><td class="soft">${esc((o.at || "").slice(0, 10))}</td></tr>`;
+      }).join("") +
       `</tbody></table>`
     : `<p class="soft">No orders yet.</p>`;
 }
