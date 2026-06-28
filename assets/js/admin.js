@@ -255,7 +255,7 @@ async function loadPrefConfig() {
   };
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadInquiries(), loadStaff(), loadDeals(), loadAudit(), loadSecretsStatus(), loadCosts(), loadExemplars()]); }
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadInquiries(), loadStaff(), loadDeals(), loadAudit(), loadSecretsStatus(), loadCosts(), loadExemplars(), loadLaunchTools()]); }
 
 // ---- Sentinel: escalations awaiting AJ's reply ----
 async function loadEscalations() {
@@ -824,6 +824,57 @@ async function addStaff() {
 }
 
 // ---- settings (generic config) ----
+// ---- Book Launch Tools (the content suite: free/auto freebies + the upsell menu) ----
+let launchCfg = {};
+async function loadLaunchTools() {
+  let res; try { res = await api("/admin/config/content"); } catch (e) { return; }
+  if (!res.ok) { $("launch-tools").innerHTML = `<p class="soft">No access to book launch tools.</p>`; return; }
+  launchCfg = (await res.json()).value || {};
+  $("launch-enabled").checked = launchCfg.suite_enabled !== false;
+  const items = launchCfg.items || [];
+  $("launch-tools").innerHTML = items.length ? items.map(launchRow).join("") : `<p class="soft">No tools yet — add one.</p>`;
+  wireLaunchRows();
+}
+function launchRow(it) {
+  return `<div class="lt" data-key="${esc(it.key || "")}" style="border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px;margin:10px 0">
+    <div class="form-row" style="gap:10px;align-items:center">
+      <input class="lt-label" value="${esc(it.label || "")}" placeholder="Tool name" style="flex:1">
+      <label class="soft" style="white-space:nowrap"><input type="checkbox" class="lt-free" ${it.free ? "checked" : ""}> free &amp; automatic on delivery</label>
+      <button class="link lt-del">remove</button>
+    </div>
+    <label class="soft" style="display:block;margin-top:8px">Generation prompt (used when free/automatic — what Libra writes from the book)</label>
+    <textarea class="lt-prompt" rows="3" style="width:100%;box-sizing:border-box">${esc(it.prompt || "")}</textarea>
+    <label class="soft" style="display:block;margin-top:6px">Menu line (shown to the author when this is offered)</label>
+    <input class="lt-blurb" value="${esc(it.blurb || "")}" style="width:100%;box-sizing:border-box">
+  </div>`;
+}
+function wireLaunchRows() {
+  $("launch-tools").querySelectorAll(".lt-del").forEach(b =>
+    b.addEventListener("click", () => b.closest(".lt").remove()));
+}
+function addLaunchTool() {
+  const wrap = document.createElement("div");
+  wrap.innerHTML = launchRow({ free: true });
+  const ph = $("launch-tools").querySelector("p.soft"); if (ph) ph.remove();
+  $("launch-tools").appendChild(wrap.firstElementChild);
+  wireLaunchRows();
+}
+function ltSlug(s) { return (s || "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 40); }
+async function saveLaunchTools() {
+  const items = [...$("launch-tools").querySelectorAll(".lt")].map(r => {
+    const label = r.querySelector(".lt-label").value.trim();
+    return { key: r.dataset.key || ltSlug(label), label, free: r.querySelector(".lt-free").checked,
+             prompt: r.querySelector(".lt-prompt").value.trim(), blurb: r.querySelector(".lt-blurb").value.trim() };
+  }).filter(it => it.label);
+  const value = { ...launchCfg, suite_enabled: $("launch-enabled").checked, items };
+  try {
+    const res = await api("/admin/config/content", { method: "POST", body: JSON.stringify({ value }) });
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) { note("launch-note", "Saved.", true); await loadLaunchTools(); }
+    else note("launch-note", d.detail || "Couldn't save.", false);
+  } catch (e) { note("launch-note", "Couldn't save.", false); }
+}
+
 async function loadConfig() {
   const key = $("cfg-key").value;
   let res; try { res = await api("/admin/config/" + key); } catch (e) { return; }
@@ -1052,6 +1103,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("abtn-inquiries").addEventListener("click", () => loadInquiries());
   $("abtn-staff").addEventListener("click", () => loadStaff());
   $("st-add").addEventListener("click", addStaff);
+  $("abtn-launch").addEventListener("click", () => loadLaunchTools());
+  $("launch-add").addEventListener("click", addLaunchTool);
+  $("launch-save").addEventListener("click", saveLaunchTools);
   $("cfg-load").addEventListener("click", loadConfig);
   $("cfg-save").addEventListener("click", saveConfig);
   $("cfg-key").addEventListener("change", loadConfig);

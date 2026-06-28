@@ -266,8 +266,19 @@ bodyclass: portal-page
     </div>
 
     <div class="panel">
+      <div class="panel-head"><h2>Book Launch Tools</h2>
+        <button id="abtn-launch" class="btn small">Refresh</button></div>
+      <p class="muted">The extras built from each finished book. <b>Free &amp; automatic</b> tools are generated for real and emailed to the author on delivery; the rest are offered as a menu they can reply to claim. Edit any tool, toggle free/automatic, add or remove, then Save.</p>
+      <label style="display:block;margin:6px 0"><input type="checkbox" id="launch-enabled"> Book launch tools enabled</label>
+      <div id="launch-tools"></div>
+      <div style="margin-top:10px"><button id="launch-add" class="btn small">+ Add tool</button>
+        &nbsp;<button id="launch-save" class="btn">Save</button>
+        <span id="launch-note" class="note"></span></div>
+    </div>
+
+    <div class="panel">
       <h2>Settings</h2>
-      <p class="muted">Pricing, plans, model routing, tripwires, limits, referral, segments, content. Edit the JSON and save. (Shopify stays the source of truth for actual charges.)</p>
+      <p class="muted">Pricing, plans, model routing, tripwires, limits, referral, segments. Edit the JSON and save. (Shopify stays the source of truth for actual charges.)</p>
       <div class="form-row" style="margin-bottom:10px">
         <select id="cfg-key">
           <option value="pricing">Pricing</option>
@@ -277,7 +288,6 @@ bodyclass: portal-page
           <option value="limits">Limits (windows)</option>
           <option value="referral">Referral program</option>
           <option value="segments">Segments</option>
-          <option value="content">Content suite</option>
           <option value="voice">Voice (spoken-tone capture)</option>
           <option value="store">Store / pricing page</option>
         </select>
