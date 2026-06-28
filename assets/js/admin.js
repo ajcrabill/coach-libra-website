@@ -881,6 +881,7 @@ function launchRow(it) {
       <label class="soft" style="white-space:nowrap"><input type="checkbox" class="lt-free" ${it.free ? "checked" : ""}> free &amp; automatic on delivery</label>
       <button class="link lt-del">remove</button>
     </div>
+    <div class="soft" style="margin-top:7px">Applies to: ${["nonfiction", "fiction", "memoir"].map(t => `<label style="margin-left:8px"><input type="checkbox" class="lt-type" value="${t}" ${(it.types || []).includes(t) ? "checked" : ""}> ${t}</label>`).join("")}</div>
     <label class="soft" style="display:block;margin-top:8px">Generation prompt (used when free/automatic — what Libra writes from the book)</label>
     <textarea class="lt-prompt" rows="3" style="width:100%;box-sizing:border-box">${esc(it.prompt || "")}</textarea>
     <label class="soft" style="display:block;margin-top:6px">Menu line (shown to the author when this is offered)</label>
@@ -893,7 +894,7 @@ function wireLaunchRows() {
 }
 function addLaunchTool() {
   const wrap = document.createElement("div");
-  wrap.innerHTML = launchRow({ free: true });
+  wrap.innerHTML = launchRow({ free: true, types: ["nonfiction", "fiction", "memoir"] });
   const ph = $("launch-tools").querySelector("p.soft"); if (ph) ph.remove();
   $("launch-tools").appendChild(wrap.firstElementChild);
   wireLaunchRows();
@@ -903,6 +904,7 @@ async function saveLaunchTools() {
   const items = [...$("launch-tools").querySelectorAll(".lt")].map(r => {
     const label = r.querySelector(".lt-label").value.trim();
     return { key: r.dataset.key || ltSlug(label), label, free: r.querySelector(".lt-free").checked,
+             types: [...r.querySelectorAll(".lt-type:checked")].map(x => x.value),
              prompt: r.querySelector(".lt-prompt").value.trim(), blurb: r.querySelector(".lt-blurb").value.trim() };
   }).filter(it => it.label);
   const value = { ...launchCfg, suite_enabled: $("launch-enabled").checked, items };
