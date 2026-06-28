@@ -748,6 +748,7 @@ async function loadInquiries() {
         ${i.suspected ? `<div style="border:1px solid #bd9347;border-radius:8px;padding:9px 11px;margin-bottom:8px;background:rgba(189,147,71,.1)">
           🔎 Looks like an existing author: <b>${esc(i.suspected.name || i.suspected.email)}</b> <span class="soft">&lt;${esc(i.suspected.email)}&gt;</span> — they may be emailing from a new address.
           <div style="margin-top:7px"><button class="btn small" data-inq-link="${i.id}">Add alias &amp; process as ${esc((i.suspected.name || "this author").split(" ")[0])}</button>
+            &nbsp;<button class="link" data-inq-linkonly="${i.id}">add alias only</button>
             <span class="soft" data-inq-linknote="${i.id}"></span></div>
         </div>` : ""}
         <textarea class="inq-reply" data-id="${i.id}" rows="6" style="width:100%;box-sizing:border-box">${esc(i.draft_reply || "")}</textarea>
@@ -762,7 +763,9 @@ async function loadInquiries() {
   $("inquiries").querySelectorAll("button[data-inq-close]").forEach(b =>
     b.addEventListener("click", () => closeInquiry(b.dataset.inqClose)));
   $("inquiries").querySelectorAll("button[data-inq-link]").forEach(b =>
-    b.addEventListener("click", () => linkInquiry(b.dataset.inqLink)));
+    b.addEventListener("click", () => linkInquiry(b.dataset.inqLink, true)));
+  $("inquiries").querySelectorAll("button[data-inq-linkonly]").forEach(b =>
+    b.addEventListener("click", () => linkInquiry(b.dataset.inqLinkonly, false)));
   $("inquiries").querySelectorAll("button[data-inq-redraft]").forEach(b =>
     b.addEventListener("click", () => redraftInquiry(b.dataset.inqRedraft)));
 }
@@ -777,14 +780,18 @@ async function redraftInquiry(id) {
     else if (nt) nt.textContent = " — couldn't re-draft";
   } catch (e) { if (nt) nt.textContent = " — couldn't re-draft"; }
 }
-async function linkInquiry(id) {
+async function linkInquiry(id, process) {
   const nt = $("inquiries").querySelector(`[data-inq-linknote="${id}"]`);
-  if (nt) nt.textContent = " — linking…";
+  if (nt) nt.textContent = process ? " — linking & processing…" : " — adding alias…";
   try {
-    const res = await api(`/admin/inquiries/${id}/link-author`, { method: "POST", body: JSON.stringify({}) });
+    const res = await api(`/admin/inquiries/${id}/link-author`, { method: "POST", body: JSON.stringify({ process }) });
     const d = await res.json().catch(() => ({}));
-    if (res.ok && d.ok) { if (nt) nt.textContent = ` — linked to ${d.author.name || d.author.email}; the system is handling it (${d.routed || "processed"})`; await loadInquiries(); }
-    else if (nt) nt.textContent = " — couldn't link: " + (d.detail || "error");
+    if (res.ok && d.ok) {
+      if (nt) nt.textContent = process
+        ? ` — linked to ${d.author.name || d.author.email}; the system is handling it (${d.routed || "processed"})`
+        : ` — alias added for ${d.author.name || d.author.email} (no reply sent)`;
+      await loadInquiries();
+    } else if (nt) nt.textContent = " — couldn't link: " + (d.detail || "error");
   } catch (e) { if (nt) nt.textContent = " — couldn't link"; }
 }
 async function sendInquiryReply(id) {
