@@ -13,6 +13,7 @@ noindex: true
       <p class="eyebrow">Pricing</p>
       <h2 style="max-width:18ch">The book you've meant to write, <em>finished.</em></h2>
       <p class="lead" style="max-width:60ch">One coach, your real voice, a publish-ready manuscript. Choose your package and we'll begin — checkout is handled securely by Shopify, and you'll hear from me within a day.</p>
+      <p id="launch-banner"></p>
       <div id="packages" class="pkg-grid"><p class="muted">Loading…</p></div>
       <p id="team-note" class="muted" style="margin-top:28px"></p>
       <p class="muted" style="margin-top:8px">Buying for a team or institution? <a href="/pay" style="color:var(--oxblood)">Arrange your team's payment →</a></p>
@@ -28,6 +29,9 @@ noindex: true
   .pkg .price { font-size:1.5rem; color:var(--oxblood); font-weight:600; margin:2px 0 10px; }
   .pkg p { color:var(--ink-soft); flex:1; margin:0; }
   .pkg .btn { margin-top:16px; align-self:flex-start; }
+  .pkg .was { font-size:.95rem; color:var(--ink-soft); text-decoration:line-through; font-weight:400; margin-left:6px; }
+  .pkg .code-note { font-size:.85rem; color:var(--ink-soft); margin:2px 0 0; }
+  #launch-banner { margin-top:14px; font-weight:600; color:var(--oxblood); }
 </style>
 
 {% raw %}
@@ -39,13 +43,21 @@ noindex: true
     const pk = d.packages || [];
     const el = document.getElementById("packages");
     if (!pk.length) { el.innerHTML = "<p class='muted'>Pricing is being finalized — email hello@coachlibra.com and we'll set you up.</p>"; return; }
+    const launch = d.launch || {};
+    const lb = document.getElementById("launch-banner");
+    if (lb) lb.textContent = launch.note || "";
     el.innerHTML = pk.map(function (p) {
       const cta = p.url
         ? `<a class="btn" href="${esc(p.url)}">Get started →</a>`
         : `<a class="btn" href="mailto:hello@coachlibra.com?subject=${encodeURIComponent(p.label || 'Coach Libra')}">Contact us</a>`;
-      return `<div class="pkg"><h3>${esc(p.label || p.sku)}</h3>`
-        + (p.price ? `<div class="price">${esc(p.price)}</div>` : "")
-        + `<p>${esc(p.blurb || "")}</p>${cta}</div>`;
+      let price = "";
+      if (p.launch_price) {
+        price = `<div class="price">${esc(p.launch_price)}${p.price ? ` <span class="was">${esc(p.price)}</span>` : ""}</div>`
+          + (launch.code ? `<div class="code-note">with code <b>${esc(launch.code)}</b></div>` : "");
+      } else if (p.price) {
+        price = `<div class="price">${esc(p.price)}</div>`;
+      }
+      return `<div class="pkg"><h3>${esc(p.label || p.sku)}</h3>${price}<p>${esc(p.blurb || "")}</p>${cta}</div>`;
     }).join("");
     document.getElementById("team-note").textContent = d.team_note || "";
   }).catch(function () {
