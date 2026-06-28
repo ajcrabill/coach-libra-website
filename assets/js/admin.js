@@ -882,10 +882,25 @@ async function loadExemplars() {
   $("exemplars").innerHTML = steps.map(s => {
     const badge = s.source === "promoted" ? `<span class="pill you">promoted</span>`
       : (s.source === "seed" ? `<span class="pill">seed</span>` : `<span class="pill">none</span>`);
-    const body = s.has ? `<pre class="exemplar-body">${esc(s.body)}</pre>`
-      : `<p class="soft">No exemplar yet — Libra writes this one fresh each time.</p>`;
-    return `<details><summary><b>${esc(s.step)}</b> ${badge}${s.subject ? ` <span class="soft">· ${esc(s.subject)}</span>` : ""}</summary>${body}</details>`;
+    return `<details><summary><b>${esc(s.step)}</b> ${badge}${s.subject ? ` <span class="soft">· ${esc(s.subject)}</span>` : ""}</summary>
+      <textarea class="ex-body" data-step="${esc(s.step)}" rows="10" placeholder="No exemplar yet — Libra writes this one fresh each time. Add one here to set the gold standard." style="width:100%;box-sizing:border-box">${esc(s.body || "")}</textarea>
+      <div style="margin-top:6px"><button class="btn small" data-ex-save="${esc(s.step)}">Save exemplar</button>
+        <span class="soft" data-ex-note="${esc(s.step)}"></span></div></details>`;
   }).join("");
+  $("exemplars").querySelectorAll("button[data-ex-save]").forEach(b =>
+    b.addEventListener("click", () => saveExemplar(b.dataset.exSave)));
+}
+async function saveExemplar(step) {
+  const ta = $("exemplars").querySelector(`.ex-body[data-step="${step}"]`);
+  const nt = $("exemplars").querySelector(`[data-ex-note="${step}"]`);
+  const body = ((ta && ta.value) || "").trim();
+  if (!body) { if (nt) nt.textContent = " — empty"; return; }
+  try {
+    const res = await api(`/admin/exemplars/${encodeURIComponent(step)}`, { method: "POST", body: JSON.stringify({ body }) });
+    const d = await res.json().catch(() => ({}));
+    if (res.ok && d.ok) { if (nt) nt.textContent = " — saved ✓"; }
+    else if (nt) nt.textContent = " — couldn't save: " + (d.detail || "error");
+  } catch (e) { if (nt) nt.textContent = " — couldn't save"; }
 }
 async function loadSecretsStatus() {
   let res; try { res = await api("/admin/secrets-status"); } catch (e) { return; }
