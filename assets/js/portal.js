@@ -47,32 +47,47 @@ let BOOKS = [], CURRENT = null, VOICE_LINE = "";   // merged book list + selecte
 async function loadDashboard() { await Promise.all([loadMe(), loadBooks(), loadSettings(), loadSent(), loadReferral(), loadCredits(), loadOrders(), loadTeam(), loadLaunch()]); }
 async function loadLaunch() {
   let d; try { d = await (await api("/me/launch")).json(); } catch (e) { return; }
-  const panel = $("launch-panel"), books = (d && d.books) || [];
-  if (!books.length) { if (panel) panel.hidden = true; return; }
+  const books = (d && d.books) || [];
+  const pubPanel = $("publish-panel"), launchPanel = $("launch-panel");
+  if (!books.length) { if (pubPanel) pubPanel.hidden = true; if (launchPanel) launchPanel.hidden = true; return; }
+
   const toolBlock = (t) => t ? `<details class="launch-tool" style="margin:10px 0"><summary style="cursor:pointer"><b>${esc(t.label)}</b> — yours, ready to copy</summary>` +
       `<textarea readonly rows="7" style="width:100%;box-sizing:border-box;margin-top:6px">${esc(t.text || "")}</textarea></details>` : "";
   const para = (s) => esc(s || "").split(/\n\n+/).filter(Boolean).map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
-  $("launch-tools").innerHTML = books.map(b => {
-    const tools = b.tools || [], byKey = {}; tools.forEach(t => { byKey[t.key] = t; });
-    const strat = b.strategy || { intro: "", sections: [] };
-    const sections = strat.sections || [], used = new Set();
-    const secs = sections.map(sec => {
-      let inline = "";
-      if (sec.tool_key && byKey[sec.tool_key]) { inline = toolBlock(byKey[sec.tool_key]); used.add(sec.tool_key); }
-      return `<section style="margin:18px 0"><h4 class="sub" style="margin-bottom:6px">${esc(sec.title)}</h4>${para(sec.body)}${inline}</section>`;
+
+  // Render a per-book strategy (by key) into a container, slotting the author's own pieces inline.
+  const renderInto = (containerId, stratKey, pendingMsg, showLeftovers) => {
+    $(containerId).innerHTML = books.map(b => {
+      const tools = b.tools || [], byKey = {}; tools.forEach(t => { byKey[t.key] = t; });
+      const strat = b[stratKey] || { intro: "", sections: [] };
+      const sections = strat.sections || [], used = new Set();
+      const secs = sections.map(sec => {
+        let inline = "";
+        if (sec.tool_key && byKey[sec.tool_key]) { inline = toolBlock(byKey[sec.tool_key]); used.add(sec.tool_key); }
+        return `<section style="margin:18px 0"><h4 class="sub" style="margin-bottom:6px">${esc(sec.title)}</h4>${para(sec.body)}${inline}</section>`;
+      }).join("");
+      const leftover = showLeftovers ? tools.filter(t => !used.has(t.key)) : [];
+      const extra = leftover.length ? `<h4 class="sub" style="margin-top:18px">Your ready-to-use pieces</h4>${leftover.map(toolBlock).join("")}` : "";
+      const header = books.length > 1 ? `<h3 class="sub" style="margin-top:8px">${esc(b.title)}</h3>` : "";
+      const intro = strat.intro ? `<p class="lead" style="max-width:62ch">${esc(strat.intro)}</p>` : "";
+      const pending = !sections.length ? `<p class="muted">${pendingMsg}</p>` : "";
+      return `<div class="strategy-book" style="margin-bottom:28px">${header}${intro}${pending}${secs}${extra}</div>`;
     }).join("");
-    const leftover = tools.filter(t => !used.has(t.key));
-    const extra = leftover.length ? `<h4 class="sub" style="margin-top:18px">Your ready-to-use pieces</h4>${leftover.map(toolBlock).join("")}` : "";
-    const header = books.length > 1 ? `<h3 class="sub" style="margin-top:8px">${esc(b.title)}</h3>` : "";
-    const intro = strat.intro ? `<p class="lead" style="max-width:62ch">${esc(strat.intro)}</p>` : "";
-    const pending = !sections.length ? `<p class="muted">Your tailored launch plan is being prepared.</p>` : "";
-    return `<div class="launch-book" style="margin-bottom:28px">${header}${intro}${pending}${secs}${extra}</div>`;
-  }).join("");
-  const pkg = d.launch_package_url
-    ? `<a class="btn" href="${esc(d.launch_package_url)}">Get the Book Launch Package →</a>`
-    : `<a class="btn" href="mailto:hello@coachlibra.com?subject=${encodeURIComponent("The Book Launch Package")}">Ask about the Book Launch Package →</a>`;
-  $("launch-links").innerHTML = `<p class="muted" style="margin-bottom:10px">Want a hand with the whole launch?</p>${pkg}`;
-  if (panel) panel.hidden = false;
+  };
+  const cta = (url, label, ask) => url
+    ? `<a class="btn" href="${esc(url)}">${label} →</a>`
+    : `<a class="btn" href="mailto:hello@coachlibra.com?subject=${encodeURIComponent(ask)}">${label} →</a>`;
+
+  // Publishing comes first (manuscript → live book), then the launch.
+  renderInto("publish-tools", "publish_strategy", "Your publishing plan is being prepared.", false);
+  $("publish-links").innerHTML = `<p class="muted" style="margin-bottom:10px">Want us to do the hard parts with you?</p>` +
+    cta(d.publish_package_url, "Get the Book Publishing Package", "The Book Publishing Package");
+  if (pubPanel) pubPanel.hidden = false;
+
+  renderInto("launch-tools", "strategy", "Your launch plan is being prepared.", true);
+  $("launch-links").innerHTML = `<p class="muted" style="margin-bottom:10px">Want a hand with the whole launch?</p>` +
+    cta(d.launch_package_url, "Get the Book Launch Package", "The Book Launch Package");
+  if (launchPanel) launchPanel.hidden = false;
 }
 async function loadMe() {
   const d = await (await api("/me")).json();
