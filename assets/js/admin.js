@@ -752,6 +752,7 @@ async function loadInquiries() {
         </div>` : ""}
         <textarea class="inq-reply" data-id="${i.id}" rows="6" style="width:100%;box-sizing:border-box">${esc(i.draft_reply || "")}</textarea>
         <div style="margin-top:6px"><button class="btn small" data-inq-send="${i.id}">Send reply</button>
+          &nbsp;<button class="link" data-inq-redraft="${i.id}">re-draft</button>
           &nbsp;<button class="link" data-inq-close="${i.id}">close without replying</button>
           <span class="soft" data-inq-note="${i.id}"></span></div>
       </div>`).join("")
@@ -762,6 +763,19 @@ async function loadInquiries() {
     b.addEventListener("click", () => closeInquiry(b.dataset.inqClose)));
   $("inquiries").querySelectorAll("button[data-inq-link]").forEach(b =>
     b.addEventListener("click", () => linkInquiry(b.dataset.inqLink)));
+  $("inquiries").querySelectorAll("button[data-inq-redraft]").forEach(b =>
+    b.addEventListener("click", () => redraftInquiry(b.dataset.inqRedraft)));
+}
+async function redraftInquiry(id) {
+  const ta = $("inquiries").querySelector(`.inq-reply[data-id="${id}"]`);
+  const nt = $("inquiries").querySelector(`[data-inq-note="${id}"]`);
+  if (nt) nt.textContent = " — re-drafting…";
+  try {
+    const res = await api(`/admin/inquiries/${id}/redraft`, { method: "POST" });
+    const d = await res.json().catch(() => ({}));
+    if (res.ok && d.ok) { if (ta) ta.value = d.draft_reply || ""; if (nt) nt.textContent = " — re-drafted ✓"; }
+    else if (nt) nt.textContent = " — couldn't re-draft";
+  } catch (e) { if (nt) nt.textContent = " — couldn't re-draft"; }
 }
 async function linkInquiry(id) {
   const nt = $("inquiries").querySelector(`[data-inq-linknote="${id}"]`);
