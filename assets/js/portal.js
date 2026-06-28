@@ -74,19 +74,18 @@ async function loadLaunch() {
       return `<div class="strategy-book" style="margin-bottom:28px">${header}${intro}${pending}${secs}${extra}</div>`;
     }).join("");
   };
-  const cta = (url, label, ask) => url
-    ? `<a class="btn" href="${esc(url)}">${label} →</a>`
-    : `<a class="btn" href="mailto:hello@coachlibra.com?subject=${encodeURIComponent(ask)}">${label} →</a>`;
+  // The paid packages route to a plain "what's included" explainer (price + checkout one click deeper),
+  // never a cold cart from a surprise upsell. The 7 manuscript products stay straight-to-checkout.
 
   // Publishing comes first (manuscript → live book), then the launch.
   renderInto("publish-tools", "publish_strategy", "Your publishing plan is being prepared.", false);
-  $("publish-links").innerHTML = `<p class="muted" style="margin-bottom:10px">Want us to do the hard parts with you?</p>` +
-    cta(d.publish_package_url, "Get the Book Publishing Package", "The Book Publishing Package");
+  $("publish-links").innerHTML = `<p class="muted" style="margin-bottom:10px">Rather not do the technical parts alone? Optional, only if you want it:</p>` +
+    `<a class="btn" href="/after-your-book#publishing">See the Book Publishing Package →</a>`;
   if (pubPanel) pubPanel.hidden = false;
 
   renderInto("launch-tools", "strategy", "Your launch plan is being prepared.", true);
-  $("launch-links").innerHTML = `<p class="muted" style="margin-bottom:10px">Want a hand with the whole launch?</p>` +
-    cta(d.launch_package_url, "Get the Book Launch Package", "The Book Launch Package");
+  $("launch-links").innerHTML = `<p class="muted" style="margin-bottom:10px">Want a hand with the launch? Optional, only if you want it:</p>` +
+    `<a class="btn" href="/after-your-book#launch">See the Book Launch Package →</a>`;
   if (launchPanel) launchPanel.hidden = false;
 }
 async function loadMe() {
