@@ -69,8 +69,8 @@ async function loadLaunch() {
     return `<div class="launch-book" style="margin-bottom:28px">${header}${intro}${pending}${secs}${extra}</div>`;
   }).join("");
   const pkg = d.launch_package_url
-    ? `<a class="btn" href="${esc(d.launch_package_url)}">Get the Launch Package →</a>`
-    : `<a class="btn" href="mailto:hello@coachlibra.com?subject=${encodeURIComponent("The Launch Package")}">Ask about the Launch Package →</a>`;
+    ? `<a class="btn" href="${esc(d.launch_package_url)}">Get the Book Launch Package →</a>`
+    : `<a class="btn" href="mailto:hello@coachlibra.com?subject=${encodeURIComponent("The Book Launch Package")}">Ask about the Book Launch Package →</a>`;
   $("launch-links").innerHTML = `<p class="muted" style="margin-bottom:10px">Want a hand with the whole launch?</p>${pkg}`;
   if (panel) panel.hidden = false;
 }
