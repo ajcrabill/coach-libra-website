@@ -15,9 +15,13 @@ noindex: true
       <p class="lead" style="max-width:60ch">One coach, your real voice, a publish-ready manuscript. Choose your package and we'll begin — checkout is handled securely by Shopify, and you'll hear from me within a day.</p>
       <p id="launch-banner"></p>
       <div id="packages" class="pkg-grid"><p class="muted">Loading…</p></div>
-      <p id="team-note" class="muted" style="margin-top:28px"></p>
-      <p class="muted" style="margin-top:8px">Buying for a team or institution? <a href="/pay" style="color:var(--oxblood)">Arrange your team's payment →</a></p>
-      <p class="muted" style="margin-top:8px">Prefer an invitation first? <a href="/#begin" style="color:var(--oxblood)">Join the waitlist →</a></p>
+
+      <div id="teams" class="rule-orn" style="margin-top:56px"><span class="glyph">❦</span></div>
+      <h3 style="max-width:20ch">Teams &amp; institutions</h3>
+      <p class="lead" style="max-width:62ch">Put your whole leadership team on the record — each leader gets a finished book in their own voice. You receive the access codes to distribute and a private, anonymized dashboard to follow the cohort's progress.</p>
+      <div id="seats-packages" class="pkg-grid"><p class="muted">Loading…</p></div>
+
+      <p class="muted" style="margin-top:36px">Prefer an invitation first? <a href="/#begin" style="color:var(--oxblood)">Join the waitlist →</a></p>
     </div>
   </section>
 </main>
@@ -39,27 +43,31 @@ noindex: true
 (function () {
   const API = "https://esbcloud.taild49f53.ts.net";
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+  function card(p, launch) {
+    const cta = p.url
+      ? `<a class="btn" href="${esc(p.url)}">Get started →</a>`
+      : `<a class="btn" href="mailto:hello@coachlibra.com?subject=${encodeURIComponent(p.label || 'Coach Libra')}">Contact us</a>`;
+    let price = "";
+    if (p.launch_price) {
+      price = `<div class="price">${esc(p.launch_price)}${p.price ? ` <span class="was">${esc(p.price)}</span>` : ""}</div>`
+        + (launch.code ? `<div class="code-note">with code <b>${esc(launch.code)}</b></div>` : "");
+    } else if (p.price) {
+      price = `<div class="price">${esc(p.price)}</div>`;
+    }
+    return `<div class="pkg"><h3>${esc(p.label || p.sku)}</h3>${price}<p>${esc(p.blurb || "")}</p>${cta}</div>`;
+  }
+  function fill(id, list, launch, empty) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!list.length) { el.innerHTML = `<p class='muted'>${empty}</p>`; return; }
+    el.innerHTML = list.map(p => card(p, launch)).join("");
+  }
   fetch(API + "/store").then(r => r.json()).then(d => {
-    const pk = d.packages || [];
-    const el = document.getElementById("packages");
-    if (!pk.length) { el.innerHTML = "<p class='muted'>Pricing is being finalized — email hello@coachlibra.com and we'll set you up.</p>"; return; }
     const launch = d.launch || {};
     const lb = document.getElementById("launch-banner");
     if (lb) lb.textContent = launch.note || "";
-    el.innerHTML = pk.map(function (p) {
-      const cta = p.url
-        ? `<a class="btn" href="${esc(p.url)}">Get started →</a>`
-        : `<a class="btn" href="mailto:hello@coachlibra.com?subject=${encodeURIComponent(p.label || 'Coach Libra')}">Contact us</a>`;
-      let price = "";
-      if (p.launch_price) {
-        price = `<div class="price">${esc(p.launch_price)}${p.price ? ` <span class="was">${esc(p.price)}</span>` : ""}</div>`
-          + (launch.code ? `<div class="code-note">with code <b>${esc(launch.code)}</b></div>` : "");
-      } else if (p.price) {
-        price = `<div class="price">${esc(p.price)}</div>`;
-      }
-      return `<div class="pkg"><h3>${esc(p.label || p.sku)}</h3>${price}<p>${esc(p.blurb || "")}</p>${cta}</div>`;
-    }).join("");
-    document.getElementById("team-note").textContent = d.team_note || "";
+    fill("packages", d.packages || [], launch, "Pricing is being finalized — email hello@coachlibra.com and we'll set you up.");
+    fill("seats-packages", d.seats || [], launch, "Team pricing is being finalized — email hello@coachlibra.com.");
   }).catch(function () {
     document.getElementById("packages").innerHTML = "<p class='muted'>We couldn't load pricing just now — email hello@coachlibra.com and we'll help.</p>";
   });
