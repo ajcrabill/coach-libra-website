@@ -30,11 +30,12 @@ noindex: true
   .pkg-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:18px; margin-top:28px; }
   .pkg { border:1px solid rgba(189,147,71,.28); border-radius:14px; padding:24px; display:flex; flex-direction:column; }
   .pkg h3 { margin:0 0 6px; }
-  .pkg .price { font-size:1.5rem; color:var(--oxblood); font-weight:600; margin:2px 0 10px; }
-  .pkg p { color:var(--ink-soft); flex:1; margin:0; }
+  .pkg .reg { font-size:1.1rem; color:var(--ink); font-weight:500; margin:0 0 3px; }
+  .pkg .reg s { color:var(--ink-soft); }
+  .pkg .price { font-size:1.5rem; color:var(--oxblood); font-weight:600; margin:0 0 3px; }
+  .pkg p { color:var(--ink-soft); flex:1; margin:10px 0 0; }
   .pkg .btn { margin-top:16px; align-self:flex-start; }
-  .pkg .was { font-size:.95rem; color:var(--ink-soft); text-decoration:line-through; font-weight:400; margin-left:6px; }
-  .pkg .code-note { font-size:.85rem; color:var(--ink-soft); margin:2px 0 0; }
+  .pkg .code-note { font-size:.85rem; color:var(--ink-soft); margin:0; }
   #launch-banner { margin-top:14px; font-weight:600; color:var(--oxblood); }
 </style>
 
@@ -49,7 +50,8 @@ noindex: true
       : `<a class="btn" href="mailto:hello@coachlibra.com?subject=${encodeURIComponent(p.label || 'Coach Libra')}">Contact us</a>`;
     let price = "";
     if (p.launch_price) {
-      price = `<div class="price">${esc(p.launch_price)}${p.price ? ` <span class="was">${esc(p.price)}</span>` : ""}</div>`
+      price = (p.price ? `<div class="reg">Regular <s>${esc(p.price)}</s></div>` : "")
+        + `<div class="price">${esc(p.launch_price)}</div>`
         + (launch.code ? `<div class="code-note">with code <b>${esc(launch.code)}</b></div>` : "");
     } else if (p.price) {
       price = `<div class="price">${esc(p.price)}</div>`;
@@ -65,7 +67,7 @@ noindex: true
   fetch(API + "/store").then(r => r.json()).then(d => {
     const launch = d.launch || {};
     const lb = document.getElementById("launch-banner");
-    if (lb) lb.textContent = launch.note || "";
+    if (lb) lb.textContent = launch.note ? (launch.note + (launch.ends ? `, ${launch.ends}.` : ".")) : "";
     fill("packages", d.packages || [], launch, "Pricing is being finalized — email hello@coachlibra.com and we'll set you up.");
     fill("seats-packages", d.seats || [], launch, "Team pricing is being finalized — email hello@coachlibra.com.");
   }).catch(function () {
