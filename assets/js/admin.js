@@ -112,7 +112,7 @@ function renderOverview() {
         : "") +
       `<button class="link danger" data-purge="${esc(r.author_email)}" title="Permanently delete this author and all their data">purge author</button></td>`;
     return `<tr class="${you ? "you" : ""}">` +
-      `<td>${esc(r.author)}</td><td>${esc(r.title)}</td>` +
+      `<td>${esc(r.author)}</td><td>${esc(r.title)}${r.book_type ? ` <span class="soft">· ${esc(r.book_type)}</span>` : ""}</td>` +
       `<td>${esc(r.stage)} <span class="status">(${esc(r.status)})</span></td>` +
       `<td class="soft">${esc(r.voice)}</td>${cells}${costCell}${sinceCell}${sentCell}` +
       `<td>${you ? "<b>" + esc(r.court) + " ◀</b>" : esc(r.court)}</td>${manage}</tr>`;
