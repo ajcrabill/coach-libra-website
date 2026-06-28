@@ -745,6 +745,11 @@ async function loadInquiries() {
         <div><b>${esc(i.from_name || i.from_email)}</b> <span class="soft">&lt;${esc(i.from_email)}&gt; · ${esc((i.at || "").slice(0, 10))}</span></div>
         <div style="margin:4px 0 6px"><b>${esc(i.subject || "(no subject)")}</b></div>
         <div class="soft" style="white-space:pre-wrap;max-height:150px;overflow:auto;margin-bottom:8px">${esc(i.body || "")}</div>
+        ${i.suspected ? `<div style="border:1px solid #bd9347;border-radius:8px;padding:9px 11px;margin-bottom:8px;background:rgba(189,147,71,.1)">
+          🔎 Looks like an existing author: <b>${esc(i.suspected.name || i.suspected.email)}</b> <span class="soft">&lt;${esc(i.suspected.email)}&gt;</span> — they may be emailing from a new address.
+          <div style="margin-top:7px"><button class="btn small" data-inq-link="${i.id}">Add alias &amp; process as ${esc((i.suspected.name || "this author").split(" ")[0])}</button>
+            <span class="soft" data-inq-linknote="${i.id}"></span></div>
+        </div>` : ""}
         <textarea class="inq-reply" data-id="${i.id}" rows="6" style="width:100%;box-sizing:border-box">${esc(i.draft_reply || "")}</textarea>
         <div style="margin-top:6px"><button class="btn small" data-inq-send="${i.id}">Send reply</button>
           &nbsp;<button class="link" data-inq-close="${i.id}">close without replying</button>
@@ -755,6 +760,18 @@ async function loadInquiries() {
     b.addEventListener("click", () => sendInquiryReply(b.dataset.inqSend)));
   $("inquiries").querySelectorAll("button[data-inq-close]").forEach(b =>
     b.addEventListener("click", () => closeInquiry(b.dataset.inqClose)));
+  $("inquiries").querySelectorAll("button[data-inq-link]").forEach(b =>
+    b.addEventListener("click", () => linkInquiry(b.dataset.inqLink)));
+}
+async function linkInquiry(id) {
+  const nt = $("inquiries").querySelector(`[data-inq-linknote="${id}"]`);
+  if (nt) nt.textContent = " — linking…";
+  try {
+    const res = await api(`/admin/inquiries/${id}/link-author`, { method: "POST", body: JSON.stringify({}) });
+    const d = await res.json().catch(() => ({}));
+    if (res.ok && d.ok) { if (nt) nt.textContent = ` — linked to ${d.author.name || d.author.email}; the system is handling it (${d.routed || "processed"})`; await loadInquiries(); }
+    else if (nt) nt.textContent = " — couldn't link: " + (d.detail || "error");
+  } catch (e) { if (nt) nt.textContent = " — couldn't link"; }
 }
 async function sendInquiryReply(id) {
   const ta = $("inquiries").querySelector(`.inq-reply[data-id="${id}"]`);
