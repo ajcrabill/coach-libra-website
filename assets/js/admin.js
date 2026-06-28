@@ -255,7 +255,7 @@ async function loadPrefConfig() {
   };
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadStaff(), loadDeals(), loadAudit(), loadSecretsStatus(), loadCosts(), loadExemplars()]); }
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadInquiries(), loadStaff(), loadDeals(), loadAudit(), loadSecretsStatus(), loadCosts(), loadExemplars()]); }
 
 // ---- Sentinel: escalations awaiting AJ's reply ----
 async function loadEscalations() {
@@ -734,6 +734,43 @@ async function loadFinance() {
     : `<p class="soft">No orders yet.</p>`;
 }
 
+// ---- inquiries inbox (non-author email; reply box pre-drafted in Coach Libra's voice) ----
+async function loadInquiries() {
+  let res; try { res = await api("/admin/inquiries"); } catch (e) { return; }
+  if (!res.ok) { $("inquiries").innerHTML = `<p class="soft">No inquiries access.</p>`; return; }
+  const d = await res.json(), items = d.inquiries || [];
+  $("inquiries").innerHTML = `<p class="muted">${d.open_count || 0} open.</p>` + (items.length
+    ? items.map(i => `<div class="inq" style="border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px;margin:10px 0">
+        <div><b>${esc(i.from_name || i.from_email)}</b> <span class="soft">&lt;${esc(i.from_email)}&gt; · ${esc((i.at || "").slice(0, 10))}</span></div>
+        <div style="margin:4px 0 6px"><b>${esc(i.subject || "(no subject)")}</b></div>
+        <div class="soft" style="white-space:pre-wrap;max-height:150px;overflow:auto;margin-bottom:8px">${esc(i.body || "")}</div>
+        <textarea class="inq-reply" data-id="${i.id}" rows="6" style="width:100%;box-sizing:border-box">${esc(i.draft_reply || "")}</textarea>
+        <div style="margin-top:6px"><button class="btn small" data-inq-send="${i.id}">Send reply</button>
+          &nbsp;<button class="link" data-inq-close="${i.id}">close without replying</button>
+          <span class="soft" data-inq-note="${i.id}"></span></div>
+      </div>`).join("")
+    : `<p class="soft">No open inquiries.</p>`);
+  $("inquiries").querySelectorAll("button[data-inq-send]").forEach(b =>
+    b.addEventListener("click", () => sendInquiryReply(b.dataset.inqSend)));
+  $("inquiries").querySelectorAll("button[data-inq-close]").forEach(b =>
+    b.addEventListener("click", () => closeInquiry(b.dataset.inqClose)));
+}
+async function sendInquiryReply(id) {
+  const ta = $("inquiries").querySelector(`.inq-reply[data-id="${id}"]`);
+  const nt = $("inquiries").querySelector(`[data-inq-note="${id}"]`);
+  const reply = ((ta && ta.value) || "").trim();
+  if (!reply) { if (nt) nt.textContent = " — reply is empty"; return; }
+  try {
+    const res = await api(`/admin/inquiries/${id}/reply`, { method: "POST", body: JSON.stringify({ reply }) });
+    const d = await res.json().catch(() => ({}));
+    if (res.ok && d.ok) { if (nt) nt.textContent = " — sent ✓"; await loadInquiries(); }
+    else if (nt) nt.textContent = " — couldn't send: " + (d.detail || "error");
+  } catch (e) { if (nt) nt.textContent = " — couldn't send"; }
+}
+async function closeInquiry(id) {
+  try { const res = await api(`/admin/inquiries/${id}/close`, { method: "POST" }); if (res.ok) await loadInquiries(); } catch (e) {}
+}
+
 // ---- staff & roles (owner-only) ----
 async function loadStaff() {
   let res; try { res = await api("/admin/staff"); } catch (e) { return; }
@@ -934,7 +971,7 @@ async function loadAudit() {
 const PANEL_KEY = "cl_admin_panels";
 let panelPrefs = {};
 
-const DEFAULT_OPEN = new Set(["Needs your attention"]);   // the action hub starts expanded
+const DEFAULT_OPEN = new Set(["Needs your attention", "Inquiries"]);   // action hub + inquiries start expanded
 
 function applyPanelState() {
   document.querySelectorAll("#admin-dashboard .panel[data-key]").forEach(panel => {
@@ -997,6 +1034,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("vm-btn").addEventListener("click", mintVoucher);
   $("tl-btn").addEventListener("click", loadTimeline);
   $("abtn-finance").addEventListener("click", () => loadFinance());
+  $("abtn-inquiries").addEventListener("click", () => loadInquiries());
   $("abtn-staff").addEventListener("click", () => loadStaff());
   $("st-add").addEventListener("click", addStaff);
   $("cfg-load").addEventListener("click", loadConfig);
