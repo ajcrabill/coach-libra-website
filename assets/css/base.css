@@ -15,6 +15,7 @@ header.nav{position:fixed;top:0;left:0;right:0;z-index:100;max-width:none;margin
 header.nav.scrolled{padding:12px 32px;box-shadow:0 1px 0 var(--line);border-color:var(--line)}
 .brand{display:flex;align-items:center;gap:11px;font-family:"Fraunces",serif;font-weight:500;font-size:1.3rem;letter-spacing:-.01em;color:var(--ink);text-decoration:none}
 .brand .mark{width:26px;height:26px;flex:0 0 auto}
+.orn-mark{width:30px;height:30px;flex:0 0 auto;display:block}
 .nav-links{display:flex;align-items:center;gap:30px}
 .nav-links a{color:var(--ink);text-decoration:none;font-size:.93rem;font-weight:500;opacity:.82;transition:opacity .25s,color .25s}
 .nav-links a:hover{opacity:1;color:var(--oxblood)}
