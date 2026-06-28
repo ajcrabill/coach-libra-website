@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..600&family=Hanken+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
-{% if page.pageCss %}<link rel="stylesheet" href="/assets/css/{{ page.pageCss }}.css" />{% endif %}
-<link rel="stylesheet" href="/assets/css/base.css" />
+{% if page.pageCss %}<link rel="stylesheet" href="/assets/css/{{ page.pageCss }}.css?v={{ site.time | date: '%s' }}" />{% endif %}
+<link rel="stylesheet" href="/assets/css/base.css?v={{ site.time | date: '%s' }}" />
 </head>
 <body class="{{ page.bodyclass }}">
 {% include header.html %}
@@ -27,6 +27,6 @@
   window.syncNavAuth=function(){var s=false;try{s=!!localStorage.getItem('cl_token');}catch(_){}if(au){au.textContent=s?'Sign out':'Sign in';}};
   if(au){au.addEventListener('click',function(e){var s=false;try{s=!!localStorage.getItem('cl_token');}catch(_){}if(s){e.preventDefault();try{localStorage.removeItem('cl_token');}catch(_){}location.href='/portal';}});window.syncNavAuth();}
 </script>
-{% if page.pageScript %}<script src="/assets/js/{{ page.pageScript }}.js"></script>{% endif %}
+{% if page.pageScript %}<script src="/assets/js/{{ page.pageScript }}.js?v={{ site.time | date: '%s' }}"></script>{% endif %}
 </body>
 </html>
