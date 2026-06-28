@@ -12,13 +12,13 @@ noindex: true
       <div class="rule-orn"><img class="orn-mark" src="/assets/img/mark.svg" alt="" aria-hidden="true"></div>
       <p class="eyebrow">Pricing</p>
       <h2 style="max-width:18ch">The book you've meant to write, <em>finished.</em></h2>
-      <p class="lead" style="max-width:60ch">One coach, your real voice, a publish-ready manuscript. Choose your package and we'll begin — checkout is handled securely by Shopify, and you'll hear from me within a day.</p>
+      <p class="lead" style="max-width:60ch">One coach, your real voice, a publish-ready manuscript. Choose your package and we'll begin. Checkout is secure, handled by Shopify, and you'll hear from me within a day.</p>
       <p id="launch-banner"></p>
       <div id="packages" class="pkg-grid"><p class="muted">Loading…</p></div>
 
       <div id="teams" class="rule-orn" style="margin-top:56px"><img class="orn-mark" src="/assets/img/mark.svg" alt="" aria-hidden="true"></div>
       <h3 style="max-width:20ch">Teams &amp; institutions</h3>
-      <p class="lead" style="max-width:62ch">Put your whole leadership team on the record — each leader gets a finished book in their own voice. You receive the access codes to distribute and a private, anonymized dashboard to follow the cohort's progress.</p>
+      <p class="lead" style="max-width:62ch">Put your whole leadership team on the record — each leader gets a finished book in their own voice. You receive the access codes to distribute and a private dashboard — names kept off it — to follow the cohort's progress.</p>
       <div id="seats-packages" class="pkg-grid"><p class="muted">Loading…</p></div>
 
       <p class="muted" style="margin-top:36px">Prefer an invitation first? <a href="/#begin" style="color:var(--oxblood)">Join the waitlist →</a></p>
@@ -68,10 +68,10 @@ noindex: true
     const launch = d.launch || {};
     const lb = document.getElementById("launch-banner");
     if (lb) lb.textContent = launch.note ? (launch.note + (launch.ends ? `, ${launch.ends}.` : ".")) : "";
-    fill("packages", d.packages || [], launch, "Pricing is being finalized — email hello@coachlibra.com and we'll set you up.");
-    fill("seats-packages", d.seats || [], launch, "Team pricing is being finalized — email hello@coachlibra.com.");
+    fill("packages", d.packages || [], launch, "We're still setting prices for this one — email hello@coachlibra.com and I'll get you sorted.");
+    fill("seats-packages", d.seats || [], launch, "Still setting team pricing — email hello@coachlibra.com and we'll work it out.");
   }).catch(function () {
-    document.getElementById("packages").innerHTML = "<p class='muted'>We couldn't load pricing just now — email hello@coachlibra.com and we'll help.</p>";
+    document.getElementById("packages").innerHTML = "<p class='muted'>We couldn't load pricing — email hello@coachlibra.com and we'll help.</p>";
   });
 })();
 </script>

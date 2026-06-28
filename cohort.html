@@ -54,7 +54,7 @@ pageCss: home
     })
     .catch(err => {
       content.innerHTML = err === 404
-        ? "<p class='muted'>We couldn't find that team — the link may be expired or incorrect. Email hello@coachlibra.com and we'll help.</p>"
+        ? "<p class='muted'>We couldn't find that team — the link may have expired, or there's a typo somewhere. Email hello@coachlibra.com and we'll help.</p>"
         : "<p class='muted'>Something went wrong loading your team. Please try again, or email hello@coachlibra.com.</p>";
     });
 })();
