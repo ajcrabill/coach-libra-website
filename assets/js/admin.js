@@ -181,6 +181,28 @@ async function loadLearning() {
     `<table class="grid"><thead><tr><th>Email type</th><th class="c">Sent</th><th class="c">You edited</th>`
     + `<th class="c">Edit · earlier</th><th class="c">Edit · recent</th><th class="c">Trend</th></tr></thead>`
     + `<tbody>${rows}</tbody></table>`;
+
+  // Multi-intent shadow dashboard
+  const sh = d.intent_shadow || {};
+  const total = sh.total || 0;
+  const consumed = (sh.by_status || {}).consumed || 0;
+  const pending = (sh.by_status || {}).pending || 0;
+  const readiness = sh.ready
+    ? `<span class="pill you">Ready to flip live</span>`
+    : `<span class="pill">${consumed}/50 consumed — keep accumulating</span>`;
+  if (!total) {
+    $("intent-shadow").innerHTML = `<p class="soft">No shadow data yet — multi-intent detection is running but hasn't seen any ambiguous messages.</p>`;
+  } else {
+    const scopes = sh.by_scope || {};
+    const scopeRows = Object.entries(scopes).map(([sk, sv]) => {
+      const res = sv.by_resolution || {};
+      const resStr = Object.entries(res).map(([r, c]) => `${r}: ${c}`).join(", ") || "—";
+      return `<tr><td>${esc(sk)}</td><td class="c">${sv.total}</td><td class="c">${sv.consumed || 0}</td><td class="soft">${esc(resStr)}</td></tr>`;
+    }).join("");
+    $("intent-shadow").innerHTML =
+      `<div style="margin-bottom:8px">${readiness} <span class="soft" style="margin-left:8px">${total} total · ${consumed} consumed · ${pending} pending</span></div>`
+      + (scopeRows ? `<table class="grid"><thead><tr><th>Scope</th><th class="c">Total</th><th class="c">Consumed</th><th>Resolutions</th></tr></thead><tbody>${scopeRows}</tbody></table>` : "");
+  }
 }
 
 // ---- Author preference defaults & per-option intensities ----
