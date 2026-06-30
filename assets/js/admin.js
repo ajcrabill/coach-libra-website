@@ -205,6 +205,150 @@ async function loadLearning() {
   }
 }
 
+// ---- LLM Categorization (email segment classifier) ----
+const SEG_TYPE_LABELS = {
+  story_material:     "Story material",
+  preference_change:  "Preference change",
+  question:           "Question",
+  approval:           "Approval",
+  comp_title:         "Comp title",
+  project_status_ask: "Status ask",
+  signature:          "Signature",
+  promo_block:        "Promo block",
+  other:              "Other",
+};
+const SEG_COLORS = {
+  story_material:     "#4ade80",
+  preference_change:  "#f472b6",
+  question:           "#60a5fa",
+  approval:           "#a78bfa",
+  comp_title:         "#fb923c",
+  project_status_ask: "#facc15",
+  signature:          "#94a3b8",
+  promo_block:        "#f87171",
+  other:              "#d1d5db",
+};
+
+function renderSegList(segs) {
+  if (!segs || !segs.length) return `<span class="soft">—</span>`;
+  return segs.map(s => {
+    const col = SEG_COLORS[s.type] || "#d1d5db";
+    const label = SEG_TYPE_LABELS[s.type] || s.type;
+    return `<span style="display:inline-block;background:${col}22;border:1px solid ${col};border-radius:4px;padding:1px 6px;font-size:0.78rem;margin:1px 2px;cursor:default" title="${esc(s.text || "")}">${esc(label)}</span>`;
+  }).join(" ");
+}
+
+async function loadSegmentation() {
+  let d;
+  try { d = await (await api("/admin/segmentation")).json(); }
+  catch (e) { $("seg-summary").innerHTML = `<p class="soft">Segmentation not available.</p>`; return; }
+
+  // Summary bar
+  const ready = d.ready_to_activate
+    ? `<span class="pill you">Ready to activate</span>`
+    : `<span class="pill">${d.reviewed}/50 reviewed — keep collecting</span>`;
+  const typeBars = (d.segment_types || []).map(t => {
+    const n = (d.type_counts || {})[t] || 0;
+    if (!n) return "";
+    const col = SEG_COLORS[t] || "#d1d5db";
+    return `<span style="background:${col}22;border:1px solid ${col};border-radius:4px;padding:2px 8px;font-size:0.8rem;margin:2px">${esc(SEG_TYPE_LABELS[t] || t)}: ${n}</span>`;
+  }).filter(Boolean).join("");
+  $("seg-summary").innerHTML =
+    `<div style="margin-bottom:8px">${ready} <span class="soft" style="margin-left:8px">${d.total} emails · ${d.reviewed} reviewed · ${d.would_change_pct}% would change routing</span></div>`
+    + (typeBars ? `<div style="line-height:2">${typeBars}</div>` : "");
+
+  // Recent email table
+  const rows = d.recent || [];
+  if (!rows.length) {
+    $("seg-feed").innerHTML = `<p class="soft">No segmented emails yet — classifications appear as inbound emails arrive.</p>`;
+    return;
+  }
+  const tableRows = rows.map(r => {
+    const segsToShow = r.corrected ? (r.corrected_segments || []) : (r.segments || []);
+    const correctedBadge = r.corrected ? `<span class="pill you" style="font-size:0.7rem">corrected</span> ` : "";
+    const wouldChange = (r.shadow_routing || {}).would_change;
+    const routingBadge = wouldChange
+      ? `<span class="pill" style="font-size:0.7rem;background:#fb923c22;border-color:#fb923c">routing Δ</span>`
+      : "";
+    const changes = ((r.shadow_routing || {}).changes || []).map(c =>
+      `<div class="soft" style="font-size:0.75rem">↳ ${esc(c.detail)}</div>`).join("");
+    return `<tr>
+      <td style="font-size:0.82rem">
+        <div><span class="soft">${esc(r.author_name)}</span></div>
+        <div class="soft" style="font-size:0.75rem">${esc(r.subject || "(no subject)")}</div>
+        ${r.body_preview ? `<div class="soft" style="font-size:0.75rem;margin-top:2px">${esc(r.body_preview)}</div>` : ""}
+      </td>
+      <td style="min-width:220px">
+        ${correctedBadge}${renderSegList(segsToShow)}
+        ${r.correction_note ? `<div class="soft" style="font-size:0.74rem;margin-top:3px">Note: ${esc(r.correction_note)}</div>` : ""}
+      </td>
+      <td>
+        ${routingBadge}${changes}
+      </td>
+      <td style="white-space:nowrap">
+        <button class="btn small seg-correct-btn" data-id="${r.id}"
+          data-segs="${esc(JSON.stringify(segsToShow))}"
+          style="font-size:0.78rem">Correct</button>
+      </td>
+    </tr>`;
+  }).join("");
+  $("seg-feed").innerHTML =
+    `<table class="grid" style="font-size:0.85rem"><thead><tr>
+      <th>Email</th><th>Segments</th><th>Shadow routing</th><th></th>
+    </tr></thead><tbody>${tableRows}</tbody></table>`;
+
+  // Correction buttons
+  document.querySelectorAll(".seg-correct-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const segId = btn.dataset.id;
+      let currentSegs;
+      try { currentSegs = JSON.parse(btn.dataset.segs); } catch { currentSegs = []; }
+      const TYPES = Object.keys(SEG_TYPE_LABELS);
+      const segEditors = currentSegs.map((s, i) =>
+        `<div style="display:flex;gap:6px;align-items:center;margin:4px 0">
+          <select class="seg-type-sel" data-i="${i}">
+            ${TYPES.map(t => `<option value="${t}"${t === s.type ? " selected" : ""}>${SEG_TYPE_LABELS[t]}</option>`).join("")}
+          </select>
+          <span style="flex:1;font-size:0.8rem;color:var(--muted)">${esc((s.text || "").slice(0, 80))}…</span>
+        </div>`).join("");
+      const modal = document.createElement("div");
+      modal.style.cssText = "position:fixed;inset:0;background:#0008;z-index:999;display:flex;align-items:center;justify-content:center";
+      modal.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:24px;width:520px;max-height:80vh;overflow-y:auto">
+        <h3 style="margin:0 0 12px">Correct segment classification</h3>
+        ${segEditors}
+        <div style="margin-top:12px"><label class="soft" style="font-size:0.85rem">Note (optional)</label>
+        <input id="seg-note-${segId}" type="text" placeholder="what the model got wrong" style="width:100%;margin-top:4px" /></div>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button id="seg-save-${segId}" class="btn small">Save correction</button>
+          <button id="seg-cancel-${segId}" class="btn small">Cancel</button>
+        </div>
+      </div>`;
+      document.body.appendChild(modal);
+      document.getElementById(`seg-cancel-${segId}`).onclick = () => modal.remove();
+      document.getElementById(`seg-save-${segId}`).onclick = async () => {
+        const updatedSegs = currentSegs.map((s, i) => ({
+          ...s,
+          type: modal.querySelector(`.seg-type-sel[data-i="${i}"]`)?.value || s.type
+        }));
+        const note = document.getElementById(`seg-note-${segId}`)?.value || "";
+        const saveBtn = document.getElementById(`seg-save-${segId}`);
+        saveBtn.disabled = true; saveBtn.textContent = "Saving…";
+        try {
+          await api(`/admin/segmentation/${segId}/correct`, {
+            method: "POST",
+            body: JSON.stringify({ corrected_segments: updatedSegs, correction_note: note })
+          });
+          modal.remove();
+          await loadSegmentation();
+        } catch (e) {
+          saveBtn.disabled = false; saveBtn.textContent = "Save correction";
+          alert("Save failed: " + e.message);
+        }
+      };
+    });
+  });
+}
+
 // ---- Author preference defaults & per-option intensities ----
 const PREF_LABELS = {
   batch: "Questions at a time", complexity: "Question complexity", cadence: "Pace",
@@ -277,7 +421,7 @@ async function loadPrefConfig() {
   };
 }
 
-async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadInquiries(), loadStaff(), loadDeals(), loadAudit(), loadSecretsStatus(), loadCosts(), loadExemplars(), loadLaunchTools()]); }
+async function loadAll() { await Promise.all([loadFunnel(), loadOverview(), loadWaitlist(), loadSentinel(), loadEscalations(), loadLearning(), loadSegmentation(), loadPrefConfig(), loadCohorts(), loadCircle(), loadVouchers(), loadFinance(), loadInquiries(), loadStaff(), loadDeals(), loadAudit(), loadSecretsStatus(), loadCosts(), loadExemplars(), loadLaunchTools()]); }
 
 // ---- Sentinel: escalations awaiting AJ's reply ----
 async function loadEscalations() {

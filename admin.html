@@ -227,6 +227,14 @@ bodyclass: portal-page
     </div>
 
     <div class="panel">
+      <h2>LLM Categorization</h2>
+      <p class="muted">Every inbound email is classified into typed segments in shadow mode. Review and correct classifications here to build the training set. Flip live once you have 50+ reviewed emails with stable distributions.</p>
+      <div id="seg-summary" style="margin-bottom:16px"></div>
+      <h3 class="sub">Recent emails</h3>
+      <div id="seg-feed"></div>
+    </div>
+
+    <div class="panel">
       <h2>Manuscript timeline</h2>
       <p class="muted">The full state and event history for one manuscript — what happened, and when.</p>
       <div class="form-row" style="margin-bottom:12px">
