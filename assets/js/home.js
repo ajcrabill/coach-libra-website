@@ -18,6 +18,12 @@ if (form) form.addEventListener('submit', async (e) => {
   if(!first.value.trim()){ first.focus(); return; }
   if(!last.value.trim()){ last.focus(); return; }
   if(!email.value || !email.validity.valid){ email.focus(); return; }
+  // Pages that gate by referral (e.g. /esb) add a school-system + ESB-code field; require them
+  // ONLY when present, so the other pages' forms are unaffected (null-safe).
+  const district = document.getElementById('district');
+  const esbCode = document.getElementById('esb_code');
+  if(district && !district.value.trim()){ district.focus(); return; }
+  if(esbCode && !esbCode.value.trim()){ esbCode.focus(); return; }
   btn.disabled = true; btn.textContent = 'Sending…';
   try {
     const res = await fetch(WAITLIST_API, {
@@ -33,6 +39,9 @@ if (form) form.addEventListener('submit', async (e) => {
         code: ((document.getElementById('code')||{}).value || '').trim(),
         // specialty landing pages set a hidden source so AJ sees the segment in /admin
         note: (document.getElementById('wl-source')||{}).value || '',
+        // /esb captures the school system + ESB referrer code for eligibility verification
+        district: ((document.getElementById('district')||{}).value || '').trim(),
+        esb_code: ((document.getElementById('esb_code')||{}).value || '').trim(),
         _gotcha: (form.querySelector('[name=_gotcha]')||{}).value || ''
       })
     });
