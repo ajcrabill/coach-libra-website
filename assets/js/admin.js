@@ -296,7 +296,12 @@ function _buildChip(segId, seg, idx, onchange) {
 }
 
 function _renderSegRow(r, onSaved) {
-  const originalSegs = r.segments || [];
+  // Once a row has been corrected/approved, r.corrected_segments IS the current truth —
+  // r.segments is frozen at whatever the LLM guessed originally. Building the working
+  // state from r.segments here (as this used to) made every save look like it reverted:
+  // the note/status read the saved correction, but the chips themselves were rebuilt
+  // from the pre-correction classification on the very next render.
+  const originalSegs = r.corrected_segments || r.segments || [];
   if (!_segWorkingState[r.id]) {
     // Clone so we can mutate without touching original
     _segWorkingState[r.id] = {
