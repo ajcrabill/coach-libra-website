@@ -224,13 +224,9 @@ bodyclass: portal-page
       <h3 style="margin-top:24px;font-size:1rem;font-weight:600">Multi-intent detection — shadow mode</h3>
       <p class="muted" style="margin-top:4px">Shadow data accumulates silently. Flip live once you have ~50 consumed queries with diverse resolutions and the distribution looks stable.</p>
       <div id="intent-shadow" class="tablewrap"></div>
-    </div>
-
-    <div class="panel">
-      <h2>LLM Categorization</h2>
-      <p class="muted">Every inbound email is classified into typed segments in shadow mode. Review and correct classifications here to build the training set. Flip live once you have 50+ reviewed emails with stable distributions.</p>
-      <div id="seg-summary" style="margin-bottom:16px"></div>
-      <h3 class="sub">Recent emails</h3>
+      <h3 style="margin-top:28px;font-size:1rem;font-weight:600">Email segment classification — shadow mode</h3>
+      <p class="muted" style="margin-top:4px">Every inbound email is split into typed segments. Hover a chip to see the exact text. Click a chip to reclassify it (auto-saves). Click <strong>Approve</strong> when a row looks correct. Build toward 50 reviewed emails to flip live.</p>
+      <div id="seg-summary" style="margin:10px 0 14px"></div>
       <div id="seg-feed"></div>
     </div>
 

@@ -229,13 +229,169 @@ const SEG_COLORS = {
   other:              "#d1d5db",
 };
 
-function renderSegList(segs) {
-  if (!segs || !segs.length) return `<span class="soft">—</span>`;
-  return segs.map(s => {
-    const col = SEG_COLORS[s.type] || "#d1d5db";
-    const label = SEG_TYPE_LABELS[s.type] || s.type;
-    return `<span style="display:inline-block;background:${col}22;border:1px solid ${col};border-radius:4px;padding:1px 6px;font-size:0.78rem;margin:1px 2px;cursor:default" title="${esc(s.text || "")}">${esc(label)}</span>`;
-  }).join(" ");
+// Per-row working state: segId → {segs, dirty}
+// Lets us accumulate inline chip changes before they're saved (approve fires them all at once).
+const _segWorkingState = {};
+
+function _segRowStatus(r) {
+  const ws = _segWorkingState[r.id];
+  if (!ws) {
+    if (!r.corrected) return {label: "unreviewed", style: "color:var(--muted);font-size:0.75rem"};
+    const changed = (r.corrected_segments || []).filter(
+      (s, i) => s.type !== (r.segments[i] || {}).type).length;
+    return changed
+      ? {label: `corrected (${changed} changed)`, style: "font-size:0.75rem;color:#4ade80"}
+      : {label: "approved", style: "font-size:0.75rem;color:#4ade80"};
+  }
+  if (!ws.dirty) return {label: "approved (unsaved)", style: "font-size:0.75rem;color:#facc15"};
+  const changed = ws.segs.filter((s, i) => s.type !== ((r.segments || [])[i] || {}).type).length;
+  return {label: `corrected (${changed} changed, unsaved)`, style: "font-size:0.75rem;color:#facc15"};
+}
+
+function _buildChip(segId, seg, idx, onchange) {
+  const col = SEG_COLORS[seg.type] || "#d1d5db";
+  const label = SEG_TYPE_LABELS[seg.type] || seg.type;
+  const chip = document.createElement("span");
+  chip.style.cssText = `display:inline-flex;align-items:center;gap:3px;background:${col}22;border:1px solid ${col};border-radius:4px;padding:2px 7px;font-size:0.78rem;margin:2px;cursor:pointer;position:relative`;
+  chip.title = seg.text || "";
+  chip.textContent = label;
+
+  chip.addEventListener("click", (e) => {
+    e.stopPropagation();
+    // Replace chip with inline select
+    const sel = document.createElement("select");
+    sel.style.cssText = "font-size:0.78rem;border-radius:4px;border:1px solid " + col + ";padding:1px 4px;background:var(--bg);color:var(--text)";
+    Object.entries(SEG_TYPE_LABELS).forEach(([t, lbl]) => {
+      const opt = document.createElement("option");
+      opt.value = t; opt.textContent = lbl;
+      if (t === seg.type) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    chip.replaceWith(sel);
+    sel.focus();
+
+    const commit = async () => {
+      const newType = sel.value;
+      seg.type = newType;
+      onchange(idx, newType);
+      // Rebuild chip with new type (replaces the select)
+      const newChip = _buildChip(segId, seg, idx, onchange);
+      sel.replaceWith(newChip);
+    };
+    sel.addEventListener("change", commit);
+    sel.addEventListener("blur", () => {
+      // If user blurs without changing, put chip back
+      setTimeout(() => {
+        if (document.contains(sel)) {
+          sel.replaceWith(_buildChip(segId, seg, idx, onchange));
+        }
+      }, 150);
+    });
+  });
+  return chip;
+}
+
+function _renderSegRow(r, onSaved) {
+  const originalSegs = r.segments || [];
+  if (!_segWorkingState[r.id]) {
+    // Clone so we can mutate without touching original
+    _segWorkingState[r.id] = {
+      segs: originalSegs.map(s => ({...s})),
+      dirty: false,
+    };
+  }
+  const ws = _segWorkingState[r.id];
+  const status = _segRowStatus(r);
+
+  const row = document.createElement("tr");
+
+  // Col 1: email info
+  const tdEmail = document.createElement("td");
+  tdEmail.style.cssText = "font-size:0.82rem;vertical-align:top;padding-right:12px";
+  tdEmail.innerHTML =
+    `<div style="font-weight:500">${esc(r.author_name)}</div>`
+    + `<div class="soft" style="font-size:0.75rem">${esc(r.subject || "(no subject)")}</div>`
+    + (r.body_preview ? `<div class="soft" style="font-size:0.74rem;margin-top:3px;max-width:220px;line-height:1.4">${esc(r.body_preview)}</div>` : "");
+
+  // Col 2: chips
+  const tdSegs = document.createElement("td");
+  tdSegs.style.cssText = "vertical-align:top;min-width:260px";
+
+  const statusEl = document.createElement("div");
+  statusEl.style.cssText = status.style + ";margin-bottom:4px";
+  statusEl.textContent = status.label;
+  tdSegs.appendChild(statusEl);
+
+  const chipWrap = document.createElement("div");
+  ws.segs.forEach((seg, idx) => {
+    const chip = _buildChip(r.id, seg, idx, (i, newType) => {
+      ws.segs[i].type = newType;
+      ws.dirty = true;
+      statusEl.textContent = _segRowStatus(r).label;
+      statusEl.style.cssText = _segRowStatus(r).style + ";margin-bottom:4px";
+    });
+    chipWrap.appendChild(chip);
+  });
+  tdSegs.appendChild(chipWrap);
+
+  if (r.correction_note && r.correction_note !== "approved") {
+    const note = document.createElement("div");
+    note.className = "soft";
+    note.style.cssText = "font-size:0.73rem;margin-top:4px";
+    note.textContent = "Note: " + r.correction_note;
+    tdSegs.appendChild(note);
+  }
+
+  // Col 3: shadow routing
+  const tdRouting = document.createElement("td");
+  tdRouting.style.cssText = "vertical-align:top;font-size:0.78rem";
+  const wouldChange = (r.shadow_routing || {}).would_change;
+  if (wouldChange) {
+    tdRouting.innerHTML = `<span class="pill" style="font-size:0.7rem;background:#fb923c22;border-color:#fb923c;margin-bottom:4px;display:inline-block">routing Δ</span>`
+      + ((r.shadow_routing.changes || []).map(c =>
+        `<div class="soft" style="font-size:0.73rem;margin-top:2px">↳ ${esc(c.detail)}</div>`).join(""));
+  }
+
+  // Col 4: approve button
+  const tdAction = document.createElement("td");
+  tdAction.style.cssText = "vertical-align:top;white-space:nowrap";
+
+  const approveBtn = document.createElement("button");
+  approveBtn.className = "btn small";
+  approveBtn.style.cssText = "font-size:0.78rem";
+  const isReviewed = r.corrected && !ws.dirty;
+  approveBtn.textContent = isReviewed ? "✓ Done" : "Approve ✓";
+  if (isReviewed) approveBtn.style.opacity = "0.5";
+
+  approveBtn.addEventListener("click", async () => {
+    approveBtn.disabled = true;
+    approveBtn.textContent = "Saving…";
+    const correctedSegs = ws.dirty ? ws.segs : originalSegs;
+    const note = ws.dirty
+      ? (() => {
+          const changed = ws.segs.filter((s, i) => s.type !== (originalSegs[i] || {}).type);
+          return changed.map(s => `"${s.text.slice(0,40)}" → ${s.type}`).join("; ");
+        })()
+      : "approved";
+    try {
+      await api(`/admin/segmentation/${r.id}/correct`, {
+        method: "POST",
+        body: JSON.stringify({ corrected_segments: correctedSegs, correction_note: note })
+      });
+      delete _segWorkingState[r.id];
+      await onSaved();
+    } catch (e) {
+      approveBtn.disabled = false;
+      approveBtn.textContent = "Approve ✓";
+    }
+  });
+  tdAction.appendChild(approveBtn);
+
+  row.appendChild(tdEmail);
+  row.appendChild(tdSegs);
+  row.appendChild(tdRouting);
+  row.appendChild(tdAction);
+  return row;
 }
 
 async function loadSegmentation() {
@@ -251,102 +407,30 @@ async function loadSegmentation() {
     const n = (d.type_counts || {})[t] || 0;
     if (!n) return "";
     const col = SEG_COLORS[t] || "#d1d5db";
-    return `<span style="background:${col}22;border:1px solid ${col};border-radius:4px;padding:2px 8px;font-size:0.8rem;margin:2px">${esc(SEG_TYPE_LABELS[t] || t)}: ${n}</span>`;
+    return `<span style="background:${col}22;border:1px solid ${col};border-radius:4px;padding:2px 8px;font-size:0.78rem;margin:2px">${esc(SEG_TYPE_LABELS[t] || t)}: ${n}</span>`;
   }).filter(Boolean).join("");
   $("seg-summary").innerHTML =
-    `<div style="margin-bottom:8px">${ready} <span class="soft" style="margin-left:8px">${d.total} emails · ${d.reviewed} reviewed · ${d.would_change_pct}% would change routing</span></div>`
-    + (typeBars ? `<div style="line-height:2">${typeBars}</div>` : "");
+    `<div style="margin-bottom:6px">${ready} <span class="soft" style="margin-left:8px">${d.total} emails · ${d.reviewed} reviewed · ${d.would_change_pct}% would change routing</span></div>`
+    + (typeBars ? `<div style="line-height:2.2">${typeBars}</div>` : "");
 
-  // Recent email table
+  // Email table
   const rows = d.recent || [];
   if (!rows.length) {
     $("seg-feed").innerHTML = `<p class="soft">No segmented emails yet — classifications appear as inbound emails arrive.</p>`;
     return;
   }
-  const tableRows = rows.map(r => {
-    const segsToShow = r.corrected ? (r.corrected_segments || []) : (r.segments || []);
-    const correctedBadge = r.corrected ? `<span class="pill you" style="font-size:0.7rem">corrected</span> ` : "";
-    const wouldChange = (r.shadow_routing || {}).would_change;
-    const routingBadge = wouldChange
-      ? `<span class="pill" style="font-size:0.7rem;background:#fb923c22;border-color:#fb923c">routing Δ</span>`
-      : "";
-    const changes = ((r.shadow_routing || {}).changes || []).map(c =>
-      `<div class="soft" style="font-size:0.75rem">↳ ${esc(c.detail)}</div>`).join("");
-    return `<tr>
-      <td style="font-size:0.82rem">
-        <div><span class="soft">${esc(r.author_name)}</span></div>
-        <div class="soft" style="font-size:0.75rem">${esc(r.subject || "(no subject)")}</div>
-        ${r.body_preview ? `<div class="soft" style="font-size:0.75rem;margin-top:2px">${esc(r.body_preview)}</div>` : ""}
-      </td>
-      <td style="min-width:220px">
-        ${correctedBadge}${renderSegList(segsToShow)}
-        ${r.correction_note ? `<div class="soft" style="font-size:0.74rem;margin-top:3px">Note: ${esc(r.correction_note)}</div>` : ""}
-      </td>
-      <td>
-        ${routingBadge}${changes}
-      </td>
-      <td style="white-space:nowrap">
-        <button class="btn small seg-correct-btn" data-id="${r.id}"
-          data-segs="${esc(JSON.stringify(segsToShow))}"
-          style="font-size:0.78rem">Correct</button>
-      </td>
-    </tr>`;
-  }).join("");
-  $("seg-feed").innerHTML =
-    `<table class="grid" style="font-size:0.85rem"><thead><tr>
-      <th>Email</th><th>Segments</th><th>Shadow routing</th><th></th>
-    </tr></thead><tbody>${tableRows}</tbody></table>`;
 
-  // Correction buttons
-  document.querySelectorAll(".seg-correct-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const segId = btn.dataset.id;
-      let currentSegs;
-      try { currentSegs = JSON.parse(btn.dataset.segs); } catch { currentSegs = []; }
-      const TYPES = Object.keys(SEG_TYPE_LABELS);
-      const segEditors = currentSegs.map((s, i) =>
-        `<div style="display:flex;gap:6px;align-items:center;margin:4px 0">
-          <select class="seg-type-sel" data-i="${i}">
-            ${TYPES.map(t => `<option value="${t}"${t === s.type ? " selected" : ""}>${SEG_TYPE_LABELS[t]}</option>`).join("")}
-          </select>
-          <span style="flex:1;font-size:0.8rem;color:var(--muted)">${esc((s.text || "").slice(0, 80))}…</span>
-        </div>`).join("");
-      const modal = document.createElement("div");
-      modal.style.cssText = "position:fixed;inset:0;background:#0008;z-index:999;display:flex;align-items:center;justify-content:center";
-      modal.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:24px;width:520px;max-height:80vh;overflow-y:auto">
-        <h3 style="margin:0 0 12px">Correct segment classification</h3>
-        ${segEditors}
-        <div style="margin-top:12px"><label class="soft" style="font-size:0.85rem">Note (optional)</label>
-        <input id="seg-note-${segId}" type="text" placeholder="what the model got wrong" style="width:100%;margin-top:4px" /></div>
-        <div style="display:flex;gap:8px;margin-top:16px">
-          <button id="seg-save-${segId}" class="btn small">Save correction</button>
-          <button id="seg-cancel-${segId}" class="btn small">Cancel</button>
-        </div>
-      </div>`;
-      document.body.appendChild(modal);
-      document.getElementById(`seg-cancel-${segId}`).onclick = () => modal.remove();
-      document.getElementById(`seg-save-${segId}`).onclick = async () => {
-        const updatedSegs = currentSegs.map((s, i) => ({
-          ...s,
-          type: modal.querySelector(`.seg-type-sel[data-i="${i}"]`)?.value || s.type
-        }));
-        const note = document.getElementById(`seg-note-${segId}`)?.value || "";
-        const saveBtn = document.getElementById(`seg-save-${segId}`);
-        saveBtn.disabled = true; saveBtn.textContent = "Saving…";
-        try {
-          await api(`/admin/segmentation/${segId}/correct`, {
-            method: "POST",
-            body: JSON.stringify({ corrected_segments: updatedSegs, correction_note: note })
-          });
-          modal.remove();
-          await loadSegmentation();
-        } catch (e) {
-          saveBtn.disabled = false; saveBtn.textContent = "Save correction";
-          alert("Save failed: " + e.message);
-        }
-      };
-    });
+  const table = document.createElement("table");
+  table.className = "grid";
+  table.style.fontSize = "0.85rem";
+  table.innerHTML = `<thead><tr><th>Email</th><th>Segments <span class="soft" style="font-weight:400;font-size:0.75rem">— hover to see text, click to reclassify</span></th><th>Shadow routing</th><th></th></tr></thead>`;
+  const tbody = document.createElement("tbody");
+  rows.forEach(r => {
+    tbody.appendChild(_renderSegRow(r, loadSegmentation));
   });
+  table.appendChild(tbody);
+  $("seg-feed").innerHTML = "";
+  $("seg-feed").appendChild(table);
 }
 
 // ---- Author preference defaults & per-option intensities ----
