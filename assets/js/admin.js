@@ -209,6 +209,7 @@ async function loadLearning() {
 const SEG_TYPE_LABELS = {
   story_material:     "Story material",
   content_directive:  "Content directive",
+  correction:         "Correction",
   preference_change:  "Preference change",
   question:           "Question",
   approval:           "Approval",
@@ -221,6 +222,7 @@ const SEG_TYPE_LABELS = {
 const SEG_COLORS = {
   story_material:     "#4ade80",
   content_directive:  "#2dd4bf",
+  correction:         "#dc2626",
   preference_change:  "#f472b6",
   question:           "#60a5fa",
   approval:           "#a78bfa",
